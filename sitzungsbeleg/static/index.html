@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sitzungsbeleg — Dashboard</title>
+<link rel="stylesheet" href="/static/style.css?v=__VERSION__">
+</head>
+<body>
+<!-- Wiederverwendbares Orb-Symbol (C14, Netz-Orb nach Kampagnen-Visual, Entscheid 2026-08-28):
+     Drahtgitter-Kugel statt Farbverlauf-Punkt -- EIN SVG-Symbol, per use-Element an jeder Stelle
+     (Personas-Filter 14px, Sitzungstabelle 16px) eingebunden; Farbe/Aura kommen je Vorkommen aus
+     der jeweiligen mini-orb-Persona-Klasse (currentColor), s. style.css "C14 Persona". -->
+<svg aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <symbol id="orb-mesh" viewBox="0 0 16 16">
+      <g fill="none" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke">
+        <circle cx="8" cy="8" r="6.4"></circle>
+        <ellipse cx="8" cy="8" rx="2.6" ry="6.4"></ellipse>
+        <ellipse cx="8" cy="8" rx="6.4" ry="2.4" transform="rotate(-18 8 8)"></ellipse>
+        <line x1="2.3" y1="5.2" x2="8" y2="1.6"></line>
+        <line x1="8" y1="1.6" x2="13.7" y2="5.2"></line>
+        <line x1="2.3" y1="10.8" x2="8" y2="14.4"></line>
+        <line x1="8" y1="14.4" x2="13.7" y2="10.8"></line>
+      </g>
+    </symbol>
+    <!-- Herkunft-Flaggen fuer den Modellkatalog (C15, Mockup-Referenz sitzungsbeleg-
+         modellkatalog-mockup.html) -- geometrische Vereinfachungen, keine Fotos/Fonts (DSGVO-
+         frei, kein externer Asset). Unbekannte Herkunftscodes fallen in katalog.js auf einen
+         Text-Badge zurueck statt eine fehlende Flagge zu referenzieren. -->
+    <symbol id="fl-us" viewBox="0 0 18 12"><rect width="18" height="12" fill="#fff"/><g fill="#B22234"><rect y="0" width="18" height="1.71"/><rect y="3.43" width="18" height="1.71"/><rect y="6.86" width="18" height="1.71"/><rect y="10.29" width="18" height="1.71"/></g><rect width="7.6" height="6.5" fill="#3C3B6E"/></symbol>
+    <symbol id="fl-cn" viewBox="0 0 18 12"><rect width="18" height="12" fill="#DE2910"/><path fill="#FFDE00" d="M3.6 1.6 4.3 3.7 6.5 3.7 4.7 5 5.4 7.1 3.6 5.8 1.8 7.1 2.5 5 0.7 3.7 2.9 3.7Z"/></symbol>
+    <symbol id="fl-eu" viewBox="0 0 18 12"><rect width="18" height="12" fill="#003399"/><g fill="#FFCC00"><circle cx="9" cy="2.4" r="0.65"/><circle cx="11.7" cy="3.3" r="0.65"/><circle cx="12.8" cy="6" r="0.65"/><circle cx="11.7" cy="8.7" r="0.65"/><circle cx="9" cy="9.6" r="0.65"/><circle cx="6.3" cy="8.7" r="0.65"/><circle cx="5.2" cy="6" r="0.65"/><circle cx="6.3" cy="3.3" r="0.65"/></g></symbol>
+    <symbol id="fl-ca" viewBox="0 0 18 12"><rect width="18" height="12" fill="#fff"/><rect width="4.5" height="12" fill="#D52B1E"/><rect x="13.5" width="4.5" height="12" fill="#D52B1E"/><path fill="#D52B1E" d="M9 2.2 9.8 4 11.2 3.4 10.6 5.2 12.2 5.6 9.6 7.4 9.6 9.8 8.4 9.8 8.4 7.4 5.8 5.6 7.4 5.2 6.8 3.4 8.2 4Z"/></symbol>
+    <!-- Nachtrag C15 v2 (Herkunft-Chip-Liste erweitert): IL/JP/KR, gleiche geometrische
+         Vereinfachung wie oben -- Fallback bleibt der Kuerzel-Text (katalog.js). -->
+    <symbol id="fl-il" viewBox="0 0 18 12"><rect width="18" height="12" fill="#fff"/><g fill="#0038b8"><rect x="0" y="1.3" width="18" height="1.5"/><rect x="0" y="9.2" width="18" height="1.5"/></g><g fill="none" stroke="#0038b8" stroke-width="0.6"><polygon points="9,4.3 7.2,7.4 10.8,7.4"/><polygon points="9,7.7 7.2,4.6 10.8,4.6"/></g></symbol>
+    <symbol id="fl-jp" viewBox="0 0 18 12"><rect width="18" height="12" fill="#fff"/><circle cx="9" cy="6" r="3.4" fill="#BC002D"/></symbol>
+    <symbol id="fl-kr" viewBox="0 0 18 12"><rect width="18" height="12" fill="#fff"/><path d="M9 3 A3 3 0 0 1 9 9 A1.5 1.5 0 0 1 9 6 A1.5 1.5 0 0 0 9 3 Z" fill="#CD2E3A"/><path d="M9 9 A3 3 0 0 1 9 3 A1.5 1.5 0 0 1 9 6 A1.5 1.5 0 0 0 9 9 Z" fill="#0047A0"/></symbol>
+  </defs>
+</svg>
+<div class="app-shell">
+  <!-- Kopf: Zeile 1 (Titel + Zeitraum-Gruppe + Darstellungs-Umschalter) + Zeile 2 (Reiter) --
+       EINE Instanz fuer alle Seiten (Mockup A, Entscheid 2026-08-26), IDs bleiben stabil,
+       darum ausserhalb der einzelnen <section id="page-*">. -->
+  <header class="kopf">
+    <div class="kopf-inner">
+      <div class="zeile-1">
+        <div class="titel-block"><h1>Sitzungsbeleg</h1><span class="versions-tag">v__VERSION__</span></div>
+        <div class="theme-toggle" role="group" aria-label="Darstellung wählen">
+          <button type="button" class="theme-seg" data-theme-val="light" aria-pressed="false" aria-label="Darstellung: Hell" title="Darstellung: Hell">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              <g stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+                <line x1="8" y1="1" x2="8" y2="2.6"/><line x1="8" y1="13.4" x2="8" y2="15"/>
+                <line x1="1" y1="8" x2="2.6" y2="8"/><line x1="13.4" y1="8" x2="15" y2="8"/>
+                <line x1="3.1" y1="3.1" x2="4.2" y2="4.2"/><line x1="11.8" y1="11.8" x2="12.9" y2="12.9"/>
+                <line x1="3.1" y1="12.9" x2="4.2" y2="11.8"/><line x1="11.8" y1="4.2" x2="12.9" y2="3.1"/>
+              </g>
+            </svg>
+          </button>
+          <button type="button" class="theme-seg" data-theme-val="dark" aria-pressed="false" aria-label="Darstellung: Dunkel" title="Darstellung: Dunkel">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M13.2 9.6A5.6 5.6 0 1 1 6.4 2.8a4.6 4.6 0 1 0 6.8 6.8z" fill="currentColor"/>
+            </svg>
+          </button>
+          <button type="button" class="theme-seg" data-theme-val="system" aria-pressed="true" aria-label="Darstellung: System" title="Darstellung: System">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <circle cx="8" cy="8" r="6.3" fill="none" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M8 1.7a6.3 6.3 0 0 1 0 12.6z" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="zeile-2">
+        <nav class="seiten-nav" aria-label="Seiten">
+          <button type="button" data-seite="start" aria-pressed="true">Start</button>
+          <button type="button" data-seite="querschnitt" aria-pressed="false">Fehlerbilder &amp; Entscheide</button>
+          <button type="button" data-seite="produkt" aria-pressed="false">Produkt</button>
+          <button type="button" data-seite="einstellungen" aria-pressed="false">Einstellungen</button>
+        </nav>
+        <!-- Nachtrag 2026-08-27 Punkt 12 (Entscheid): aus der Titelzeile hierher verschoben --
+             rechtsbuendig in der Reiterzeile, rechte Kante deckungsgleich mit dem Darstellungs-
+             Umschalter darueber (siehe style.css .zeile-2). IDs unveraendert. -->
+        <div class="zeitraum-gruppe">
+          <nav class="datumsnav" aria-label="Datumsnavigation">
+            <button type="button" class="icon-btn" id="tag-zurueck" aria-label="Vorheriger Tag">◂</button>
+            <span class="datum" id="datum-anzeige">—</span>
+            <button type="button" class="icon-btn" id="tag-vor" aria-label="Nächster Tag">▸</button>
+          </nav>
+          <span class="gruppe-trenner" aria-hidden="true">·</span>
+          <div class="segmented" role="group" aria-label="Zeitraum">
+            <button type="button" data-modus="tag" aria-pressed="false">Tag</button>
+            <button type="button" data-modus="7" aria-pressed="true">7 Tage</button>
+            <button type="button" data-modus="30" aria-pressed="false">30 Tage</button>
+          </div>
+          <span class="gruppe-trenner" aria-hidden="true">·</span>
+          <div class="zeitraum-wrap">
+            <button type="button" class="outline-btn" id="zeitraum-btn" aria-haspopup="true" aria-expanded="false" aria-controls="zeitraum-popover">Zeitraum…</button>
+            <div class="popover" id="zeitraum-popover" hidden>
+              <div class="popover-felder">
+                <label for="zr-von">Von<input type="date" id="zr-von"></label>
+                <label for="zr-bis">Bis<input type="date" id="zr-bis"></label>
+              </div>
+              <div class="popover-schnellwahl">
+                <button type="button" class="ghost-btn" data-quick="woche">Diese Woche</button>
+                <button type="button" class="ghost-btn" data-quick="monat">Dieser Monat</button>
+                <button type="button" class="ghost-btn" data-quick="letzter-monat">Letzter Monat</button>
+              </div>
+              <div class="popover-footer">
+                <button type="button" class="outline-btn" id="zr-uebernehmen">Übernehmen</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <!-- ================= SEITE: START ================= -->
+  <section id="page-start" class="page">
+    <div class="inhalt">
+      <!-- Projekte + Filter -->
+      <aside class="seitenleiste" id="filter-panel" aria-label="Projekte und Filter">
+        <div class="filter-gruppe filter-gruppe-projekte">
+          <p class="eyebrow">Projekte
+            <button type="button" class="hilfe-btn" aria-controls="hilfe-projekte" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+          </p>
+          <p class="hilfe-text" id="hilfe-projekte" hidden>Projekte erscheinen automatisch, sobald in ihrem Ordner eine Sitzung erfasst wurde. Nichts muss angelegt werden.</p>
+          <label for="projekt-suche" class="caption" style="display:block;">Projekt suchen</label>
+          <input type="search" id="projekt-suche" class="projekt-suche" placeholder="Projekt suchen…" aria-label="Projekt suchen">
+          <div class="alle-keine-zeile">
+            <button type="button" class="link-btn" id="proj-alle">Alle</button>
+            <span aria-hidden="true" class="caption">·</span>
+            <button type="button" class="link-btn" id="proj-keine">Keine</button>
+          </div>
+          <p class="eyebrow" style="margin-top:16px;">Zuletzt aktiv</p>
+          <ul class="projekt-liste" id="projekt-liste-aktiv"></ul>
+          <details class="weitere-projekte">
+            <summary>Weitere (A–Z) <span class="caption">— <span id="weitere-anzahl">0</span></span></summary>
+            <ul class="projekt-liste weitere-liste-scroll" id="projekt-liste-weitere"></ul>
+          </details>
+        </div>
+        <div class="filter-gruppe filter-gruppe-ki-plattformen">
+          <p class="eyebrow">Anbieter</p>
+          <ul class="quellen-liste">
+            <li class="filter-zeile"><input type="checkbox" id="q-claude" data-quelle="Claude" checked><label for="q-claude"><span class="quelle-chip quelle-claude">Claude</span></label></li>
+            <li class="filter-zeile"><input type="checkbox" id="q-codex" data-quelle="Codex" checked><label for="q-codex"><span class="quelle-chip quelle-codex">Codex</span></label></li>
+            <li class="filter-zeile"><input type="checkbox" id="q-ollama" data-quelle="Ollama" checked><label for="q-ollama"><span class="quelle-chip">Ollama</span></label></li>
+            <li class="filter-zeile"><input type="checkbox" id="q-openrouter" data-quelle="OpenRouter" checked><label for="q-openrouter"><span class="quelle-chip quelle-openrouter">OpenRouter</span></label></li>
+            <li class="filter-zeile"><input type="checkbox" id="q-requesty" data-quelle="Requesty" checked><label for="q-requesty"><span class="quelle-chip quelle-requesty">Requesty</span></label></li>
+            <li class="filter-zeile" id="q-unbekannt-zeile"><input type="checkbox" id="q-unbekannt" data-quelle="Unbekannt" checked><label for="q-unbekannt"><span class="quelle-chip quelle-unbekannt">Unbekannt</span></label></li>
+          </ul>
+        </div>
+        <!-- Achse Persona (C14, Entscheid 2026-08-28): IMMER sichtbar, kein Zaehler -- gleiche
+             feste Optik wie die Anbieter-Leiste darueber (anders als "Umgebung", die erst ab zwei
+             vorkommenden Werten erscheint). Vierte Zelle bleibt bewusst leerer Puffer (Platz fuer
+             einen kuenftigen Agenten), s. Mockup sitzungsbeleg-persona-start-mockup.html. -->
+        <div class="filter-gruppe filter-gruppe-personas">
+          <p class="eyebrow">Personas</p>
+          <ul class="personas-liste">
+            <li class="filter-zeile"><input type="checkbox" id="p-vico" data-persona="vico" checked><label for="p-vico"><svg class="mini-orb mini-orb--vico" viewBox="0 0 16 16" aria-hidden="true"><use href="#orb-mesh"></use></svg>VICO</label></li>
+            <li class="filter-zeile"><input type="checkbox" id="p-vica" data-persona="vica" checked><label for="p-vica"><svg class="mini-orb mini-orb--vica" viewBox="0 0 16 16" aria-hidden="true"><use href="#orb-mesh"></use></svg>VICA</label></li>
+            <li class="filter-zeile"><input type="checkbox" id="p-cura" data-persona="cura" checked><label for="p-cura"><svg class="mini-orb mini-orb--cura" viewBox="0 0 16 16" aria-hidden="true"><use href="#orb-mesh"></use></svg>CURA</label></li>
+            <li class="filter-zeile puffer-zelle" aria-hidden="true"><input type="checkbox"><label>—</label></li>
+          </ul>
+        </div>
+        <!-- Achse Umgebung (C12, Maintainer 2026-08-28 12:45): NUR sichtbar, wenn im Zeitraum >= 2
+             Werte vorkommen (start.js:renderFilterPanel + format.js:umgebungBlockSichtbar) --
+             analog zur "q-unbekannt-zeile"-Idee, hier fuer den ganzen Block. -->
+        <div class="filter-gruppe filter-gruppe-umgebung" id="filter-gruppe-umgebung" hidden>
+          <p class="eyebrow">Umgebung</p>
+          <ul class="umgebung-liste">
+            <li class="filter-zeile" id="u-entwicklung-zeile"><input type="checkbox" id="u-entwicklung" data-umgebung="entwicklung" checked><label for="u-entwicklung">Entwicklung</label></li>
+            <li class="filter-zeile" id="u-abnahme-zeile"><input type="checkbox" id="u-abnahme" data-umgebung="abnahme" checked><label for="u-abnahme">Abnahme</label></li>
+            <li class="filter-zeile" id="u-betrieb-zeile"><input type="checkbox" id="u-betrieb" data-umgebung="betrieb" checked><label for="u-betrieb">Betrieb</label></li>
+          </ul>
+        </div>
+        <div class="filter-gruppe filter-gruppe-kontext">
+          <p class="eyebrow">Kontext
+            <button type="button" class="hilfe-btn" aria-controls="hilfe-kontext" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+          </p>
+          <p class="hilfe-text" id="hilfe-kontext" hidden>Welche Art Sitzung das war -- Terminal-Arbeit, Sprachbrücke, Codex-Zweitmeinung, Fremd-Repo-Prüfung oder Wegwerf-Test. Sitzungen ohne Zuordnung zählt die Kachel „Unzugeordnet" im Querschnitt.</p>
+          <ul class="kontext-liste">
+            <li class="filter-zeile"><input type="checkbox" id="k-arbeit" data-kontext="arbeit" checked><label for="k-arbeit">Arbeit</label></li>
+            <li class="filter-zeile"><input type="checkbox" id="k-bewertung" data-kontext="bewertung" checked><label for="k-bewertung">Bewertung</label></li>
+            <li class="filter-zeile"><input type="checkbox" id="k-review" data-kontext="review" checked><label for="k-review">Review</label></li>
+            <li class="filter-zeile"><input type="checkbox" id="k-test" data-kontext="test" checked><label for="k-test">Test</label></li>
+            <li class="filter-zeile"><input type="checkbox" id="k-voice" data-kontext="voice" checked><label for="k-voice">Voice</label></li>
+          </ul>
+        </div>
+      </aside>
+      <main class="hauptspalte start-mitte">
+        <!-- Querschnitt: bleibt fester Kopfteil (Korrektur 2026-08-26) -->
+        <div class="abschnitt">
+          <h2>Querschnitt
+            <button type="button" class="hilfe-btn" aria-controls="hilfe-querschnitt" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+            <span class="caption" id="querschnitt-zeitraum-start"></span>
+          </h2>
+          <p class="hilfe-text" id="hilfe-querschnitt" hidden>Muster über alle gewählten Projekte und Sitzungen im Zeitraum. Klick auf eine Kachel zeigt die betroffenen Sitzungen.</p>
+          <div class="querschnitt-grid" id="querschnitt-grid" style="margin-top:12px;">
+            <p class="ladehinweis">Lädt…</p>
+          </div>
+        </div>
+        <!-- Gemeinsamer Scrollbereich Fehler-Panel + Sitzungen (Korrektur 2026-08-26):
+             scrollt per Mausrad, ohne eigenen sichtbaren Balken -- Balken gibt es nur INNERHALB
+             der beiden Tabellen (.tabelle-gitter, Tabellen-Scroll-Standard). -->
+        <div class="start-scroll">
+          <!-- Fehler-Drilldown (zweistufig, Umbau 2026-08-26): Panel mit allen Fehlerbildern
+               der Fehler-Kachel, erst von dort aus je Zeile weiter in die Sitzungsliste. -->
+          <div class="abschnitt" id="fehler-panel-abschnitt" hidden>
+            <h2>Wiederkehrende Fehler <span class="caption" id="fehler-panel-zeitraum"></span>
+              <button type="button" class="hilfe-btn" aria-controls="hilfe-fehlerpanel" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+              <button type="button" class="link-btn" id="fehler-panel-schliessen" style="margin-left:auto;">Schließen</button>
+            </h2>
+            <p class="hilfe-text" id="hilfe-fehlerpanel" hidden>Ein Fehlerbild fasst alle Vorkommen mit gleichem Werkzeug, gleicher Fehlerart und gleichem Fehlertext-Hash zusammen. Treffer zählt jedes Vorkommen dieses Fehlerbilds in der jeweiligen Sitzung.</p>
+            <div class="tabelle-gitter" id="fehlerbilder-gitter" style="margin-top:12px;">
+              <div class="tabelle-kopf">
+                <table id="tabelle-fehlerbilder">
+                  <colgroup>
+                    <col style="width:210px"><col style="width:130px"><col style="width:130px">
+                    <col style="width:90px"><col style="width:110px"><col style="width:130px">
+                    <col style="width:200px">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th aria-sort="none"><button type="button" class="th-sort fp-sort" data-col="fehlerbild" data-type="text">Fehlerbild <span class="sort-arrow"></span></button></th>
+                      <th aria-sort="none"><button type="button" class="th-sort fp-sort" data-col="werkzeug" data-type="text">Werkzeug <span class="sort-arrow"></span></button></th>
+                      <th aria-sort="none"><button type="button" class="th-sort fp-sort" data-col="fehlerklasse" data-type="text">Fehlerart <span class="sort-arrow"></span></button></th>
+                      <th class="num" aria-sort="descending"><button type="button" class="th-sort fp-sort" data-col="anzahl_sitzungen" data-type="num">Sitzungen <span class="sort-arrow">▼</span></button></th>
+                      <th class="num" aria-sort="none"><button type="button" class="th-sort fp-sort" data-col="treffer_gesamt" data-type="num">Treffer gesamt <span class="sort-arrow"></span></button></th>
+                      <th aria-sort="none"><button type="button" class="th-sort fp-sort" data-col="status" data-type="text">Status <span class="sort-arrow"></span></button></th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+              <div class="tabelle-koerper tg-zeile-48" id="fehlerbilder-koerper">
+                <table>
+                  <colgroup>
+                    <col style="width:210px"><col style="width:130px"><col style="width:130px">
+                    <col style="width:90px"><col style="width:110px"><col style="width:130px">
+                    <col style="width:200px">
+                  </colgroup>
+                  <tbody id="fehlerbilder-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- Sitzungen -->
+          <div class="abschnitt" id="sitzungen-abschnitt">
+            <h2>Sitzungen</h2>
+            <div class="filter-banner" id="filter-banner" hidden>
+              <span id="filter-banner-text"></span>
+              <label class="filter-zeile" id="filter-banner-erledigt-zeile" hidden style="margin:0;">
+                <input type="checkbox" id="filter-banner-erledigt">
+                <span>Erledigte einblenden</span>
+              </label>
+              <button type="button" class="link-btn" id="filter-banner-aufheben">Filter aufheben</button>
+            </div>
+            <div class="tabelle-gitter" id="sitzungen-gitter">
+              <div class="tabelle-kopf">
+                <table id="tabelle-sitzungen">
+                  <colgroup>
+                    <col style="width:60px"><col style="width:118px"><col style="width:170px"><col style="width:96px">
+                    <col style="width:66px"><col style="width:66px"><col style="width:56px">
+                    <col style="width:56px"><col style="width:78px"><col style="width:144px"><col style="width:130px">
+                    <col style="width:60px" class="spalte-treffer">
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th class="th-nr" aria-sort="none"><button type="button" class="th-sort" data-col="nr" data-type="num">Nr. <span class="sort-arrow"></span></button><span class="th-hilfe" tabindex="0" title="Fortlaufende Nummer des Belegs; erscheint in der Adresse (#sitzung/994).">?</span></th>
+                      <th aria-sort="descending"><button type="button" class="th-sort" data-col="zeit" data-type="zeit">Zeit <span class="sort-arrow">▼</span></button></th>
+                      <th aria-sort="none"><button type="button" class="th-sort" data-col="projekt" data-type="text">Projekt <span class="sort-arrow"></span></button></th>
+                      <th aria-sort="none"><button type="button" class="th-sort" data-col="quelle" data-type="text">Quelle <span class="sort-arrow"></span></button></th>
+                      <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="dauer" data-type="dauer">Dauer <span class="sort-arrow"></span></button></th>
+                      <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="runden" data-type="num">Runden <span class="sort-arrow"></span></button></th>
+                      <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="tools" data-type="num">Tools <span class="sort-arrow"></span></button></th>
+                      <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="fehler" data-type="num">Fehler <span class="sort-arrow"></span></button></th>
+                      <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="euro" data-type="euro" title="API-Kosten der Hauptsitzung (Token × Preisliste). Ollama Cloud: Referenzpreis nach OpenRouter-Liste, tatsächlich Abo — ohne hinterlegten Preis steht „Abo“.">USD <span class="sort-arrow"></span></button></th>
+                      <th aria-sort="none"><button type="button" class="th-sort" data-col="status" data-type="text">Status <span class="sort-arrow"></span></button></th>
+                      <th aria-sort="none"><button type="button" class="th-sort" data-col="persona" data-type="text">Persona <span class="sort-arrow"></span></button></th>
+                      <th class="num spalte-treffer" aria-sort="none"><button type="button" class="th-sort" data-col="treffer" data-type="num">Treffer <span class="sort-arrow"></span></button></th>
+                    </tr>
+                  </thead>
+                </table>
+              </div>
+              <div class="tabelle-koerper tg-zeile-48" id="sitzungen-koerper">
+                <table>
+                  <colgroup>
+                    <col style="width:60px"><col style="width:118px"><col style="width:170px"><col style="width:96px">
+                    <col style="width:66px"><col style="width:66px"><col style="width:56px">
+                    <col style="width:56px"><col style="width:78px"><col style="width:144px"><col style="width:130px">
+                    <col style="width:60px" class="spalte-treffer">
+                  </colgroup>
+                  <tbody id="sitzungen-body"><tr><td colspan="12" class="ladehinweis">Lädt…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+  <!-- ================= SEITE: SITZUNG ================= -->
+  <!-- Gleiches Dreispalten-Raster wie SEITE: START (Entscheid 2026-08-26): links die
+       Verlauf-Zeitleiste in der .seitenleiste-Optik, Mitte feste .hauptspalte (1040px),
+       rechts .freiraum. -->
+  <section id="page-sitzung" class="page">
+   <div class="inhalt">
+    <aside class="seitenleiste rail-spalte" aria-label="Verlauf der Sitzung">
+      <div class="abschnitt">
+        <h2>Verlauf
+          <!-- Sortier-Umschalter (Feedback 2026-08-27): gleiche Optik wie der
+               Tabellen-Sortierpfeil (start.js/.sort-arrow), Standard "neueste zuerst". -->
+          <button type="button" class="ghost-btn verlauf-sort-btn" id="verlauf-sort-btn"></button>
+        </h2>
+        <div class="verlauf-scroll" id="verlauf-scroll">
+          <ul class="zeitleiste" id="verlauf-liste"></ul>
+          <button type="button" class="link-btn verlauf-alle-btn" id="verlauf-alle-btn" hidden></button>
+        </div>
+        <p class="rail-fussnote caption" id="rail-fussnote"></p>
+      </div>
+    </aside>
+    <main class="hauptspalte detail-mitte">
+     <div class="detail-kopf-fix">
+      <!-- Kompaktzeile (Mockup B, Entscheid 2026-08-26; Zurueck-Link entfernt Maintainer 2026-08-27,
+           Weg zurueck = Reiter "Start"). Phase 2 E: das Kopf-Dropdown "Aktionen ▾" (einziger
+           Eintrag "Zweitmeinung einholen") entfaellt ersatzlos -- Pruefen sitzt jetzt je Gruppe
+           an der Befund-Karte bzw. gesammelt im Knopf "Alle offenen pruefen" ueber der Liste. -->
+      <div class="kompaktzeile">
+        <p class="breadcrumb" id="sitzung-breadcrumb">—</p>
+      </div>
+      <div id="sitzung-inhalt"></div>
+     </div>
+     <div class="detail-scroll">
+      <div class="abschnitt">
+        <h2>Kennzahlen</h2>
+        <div class="gr" id="kennzahlen-karten"></div>
+        <p class="caption" id="kennzahlen-fussnote"></p>
+      </div>
+      <p class="stempelzeile">
+        <span class="stempel-label">Erfassungsehrlichkeit
+          <button type="button" class="hilfe-btn" aria-controls="hilfe-stempel" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+        </span>
+        <span id="stempelzeile-inhalt"></span>
+        <span class="hilfe-text" id="hilfe-stempel" hidden>observed = gemessen · derived = berechnet · not_recorded = Quelle liefert es nicht · not_copied = bewusst nicht übernommen (Inhalte).</span>
+      </p>
+      <div class="abschnitt">
+        <div class="kompaktzeile" id="befunde-abschnitt-kopf">
+          <h2 style="margin:0">Befunde
+            <button type="button" class="hilfe-btn" aria-controls="hilfe-befunde" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+          </h2>
+          <button type="button" class="outline-btn" id="alle-offen-pruefen-btn" style="margin-left:auto" hidden>Alle offenen prüfen</button>
+        </div>
+        <p class="caption" id="alle-offen-pruefen-hinweis"></p>
+        <p class="hilfe-text" id="hilfe-befunde" hidden>Jede Zeile ist eine Regel, die auf diesen Beleg zutraf: Titel + Klartext, was sie bedeutet, darunter die Position im Verlauf (falls die Regel eine kennt), der Status (Pille) und — sobald geprüft — das Vier-Augen-Urteil (Claude/Codex) direkt unter dem Gruppenkopf.</p>
+        <ul class="gr" id="befunde-liste"></ul>
+      </div>
+      <!-- Pruefprotokoll (Phase 2 E, Mockup M2): die frühere volle "Vier Augen"-Tabelle bleibt als
+           eingeklapptes Protokoll bestehen (Dissens-Entscheid weiterhin hier möglich) -- die
+           primäre Ansicht ist jetzt die Vier-Augen-Zeile inline je Befund-Gruppe oben. -->
+      <details class="abschnitt" id="vieraugen-abschnitt">
+        <summary>Prüfprotokoll <span class="caption" id="vieraugen-dissens-zahl"></span></summary>
+        <p class="caption" style="margin:8px 0 4px;">Letzter Vier-Augen-Lauf dieser Sitzung (Legacy-Format, wird von den neuen Prüf-Läufen inline oben abgelöst).
+          <button type="button" class="hilfe-btn" aria-controls="hilfe-vieraugen" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+        </p>
+        <p class="hilfe-text" id="hilfe-vieraugen" hidden>Jede Auffälligkeit wird von beiden Modellen unabhängig bewertet (bestätigt/verworfen/unklar). Bei Widerspruch (Dissens) entscheiden Sie über den Knopf in der Spalte Ergebnis — der Entscheid erscheint dort danach mit Datum und Vermerk.</p>
+        <div id="vieraugen-body"><p class="caption">Noch nicht geprüft.</p></div>
+      </details>
+      <div class="abschnitt" id="subagenten-abschnitt">
+        <h2 id="subagenten-titel">Subagenten</h2>
+        <div class="tabelle-gitter" id="subagenten-gitter" style="margin-top:12px;">
+          <div class="tabelle-kopf">
+            <table class="subagent-tabelle" id="subagenten-tabelle">
+              <colgroup>
+                <col style="width:130px"><col style="width:360px"><col style="width:160px">
+                <col style="width:76px"><col style="width:76px"><col style="width:140px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Typ<span class="th-hilfe" tabindex="0" title="Agententyp (z. B. general-purpose, Explore). Klick auf den Wert öffnet den Subagent-Beleg.">?</span></th>
+                  <th>Auftrag<span class="th-hilfe" tabindex="0" title="Kurzlabel des Auftrags aus dem Agent-Aufruf, redigiert.">?</span></th>
+                  <th>Modell<span class="th-hilfe" tabindex="0" title="Volle Modellkennung aus dem eigenen Transkript des Subagenten, sonst die Kurzform aus den Metadaten.">?</span></th>
+                  <th class="num">Dauer<span class="th-hilfe" tabindex="0" title="Laufzeit des Subagenten.">?</span></th>
+                  <th class="num">Fehler<span class="th-hilfe" tabindex="0" title="Fehlgeschlagene Werkzeugaufrufe des Subagenten.">?</span></th>
+                  <th>Beleg<span class="th-hilfe" tabindex="0" title="✓ = eigenes Transkript des Subagenten gefunden. „ohne Beleg&quot; = Transkript fehlt — die Zahlen stammen dann nur aus der Hauptsitzung.">?</span></th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+          <div class="tabelle-koerper tg-zeile-40" id="subagenten-koerper">
+            <table class="subagent-tabelle">
+              <colgroup>
+                <col style="width:130px"><col style="width:360px"><col style="width:160px">
+                <col style="width:76px"><col style="width:76px"><col style="width:140px">
+              </colgroup>
+              <tbody id="subagenten-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <p class="hinweisleiste-unten">Dieser Beleg enthält keine Inhalte. Rohdaten liegen nur lokal.</p>
+     </div>
+    </main>
+   </div>
+  </section>
+  <!-- ================= SEITE: SUBAGENT ================= -->
+  <!-- Gleiches Dreispalten-Raster wie SEITE: START/SITZUNG: links nur der Rueck-Link in der
+       .seitenleiste-Optik (bevorzugt leer, Entscheid 2026-08-26), Mitte .hauptspalte,
+       rechts .freiraum. Gleiches Fix-oben/Scroll-unten-Muster wie die Sitzungsseite
+       (Entscheid 2026-08-26, Mockup B: "Kompaktzeile + Kacheln fix, Rest scrollt ohne
+       Balken") -- hier ist die Breadcrumb-Zeile bereits die gesamte "Kompaktzeile". -->
+  <section id="page-subagent" class="page">
+   <div class="inhalt">
+    <aside class="seitenleiste" aria-label="Navigation">
+      <a href="#" id="subagent-zurueck" class="zurueck-link">◂ Zur Sitzung</a>
+    </aside>
+    <main class="hauptspalte detail-mitte">
+     <div class="detail-kopf-fix">
+      <p class="breadcrumb" id="subagent-breadcrumb">—</p>
+     </div>
+     <div class="detail-scroll">
+      <div class="subagent-details" id="subagent-details">
+        <p class="ladehinweis">Lädt…</p>
+      </div>
+      <p class="hinweisleiste-unten">Dieser Beleg enthält keine Inhalte. Rohdaten liegen nur lokal.</p>
+     </div>
+    </main>
+   </div>
+  </section>
+  <!-- ================= SEITE: QUERSCHNITT ================= -->
+  <!-- Gleiches Fix-oben/Scroll-unten-Muster wie Start/Sitzung (Layout-Reste R3, 2026-08-27):
+       vorher war <main class="hauptspalte"> ohne .detail-mitte/.detail-scroll -- die Seite
+       wuchs mit der Tabelle und scrollte als Ganzes ueber den Viewport hinaus (kein Chat-Kontakt
+       an der Unterkante). Kopf (Ueberschrift + Hilfe) bleibt fix, die Tabelle fuellt per
+       passeTabelleHoeheAn() (fehlerbilder.js, wie start.js #sitzungen-koerper) die Restflaeche
+       bis zur Unterkante von .detail-mitte -- dieselbe Kante wie #chat. -->
+  <section id="page-querschnitt" class="page">
+   <div class="inhalt">
+    <!-- Leer-Reserve statt Seitenleiste (Auftrag 2026-08-28, C7-Nachtrag): haelt .hauptspalte
+         an derselben Stelle wie auf Start, siehe style.css .leerspalte. -->
+    <aside class="leerspalte" aria-hidden="true"></aside>
+    <main class="hauptspalte detail-mitte">
+     <div class="detail-kopf-fix">
+      <h2>Fehlerbilder &amp; Entscheide
+        <button type="button" class="hilfe-btn" aria-controls="hilfe-fehlerbilder-seite" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+      </h2>
+      <p class="hilfe-text" id="hilfe-fehlerbilder-seite" hidden>Jede Zeile ist ein Fehlerbild (eine Signatur) über den gewählten Zeitraum, nicht eine einzelne Sitzung. Zeile öffnen zeigt die betroffenen Sitzungen und erlaubt eine Prüfung über alle Sitzungen hinweg.</p>
+     </div>
+     <div class="detail-scroll">
+      <div class="tabelle-gitter" id="fehlerbild-gitter" style="margin-top:12px;">
+        <div class="tabelle-kopf">
+          <table>
+            <colgroup>
+              <col style="width:235px"><col style="width:86px"><col style="width:122px">
+              <col style="width:160px"><col style="width:210px"><col style="width:128px"><col style="width:58px">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Fehlerbild</th><th class="num">Sitzungen</th><th>Projekte</th>
+                <th>Jüngstes Vorkommen</th><th>Status</th><th>Entscheid</th><th></th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+        <div class="tabelle-koerper tg-zeile-48" id="fehlerbild-koerper">
+          <table>
+            <colgroup>
+              <col style="width:235px"><col style="width:86px"><col style="width:122px">
+              <col style="width:160px"><col style="width:210px"><col style="width:128px"><col style="width:58px">
+            </colgroup>
+            <tbody id="fehlerbild-body"><tr><td colspan="7" class="ladehinweis">Lädt…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+     </div>
+    </main>
+   </div>
+  </section>
+  <!-- ================= SEITE: PRODUKT ================= -->
+  <section id="page-produkt" class="page">
+   <div class="inhalt">
+    <!-- Leer-Reserve statt Seitenleiste (Auftrag 2026-08-28, C7-Nachtrag): siehe style.css
+         .leerspalte / Kommentar auf page-querschnitt. -->
+    <aside class="leerspalte" aria-hidden="true"></aside>
+    <main class="hauptspalte">
+    <h2>Produkt</h2>
+    <div class="platzhalter-karte" id="produkt-inhalt" style="margin-top:12px;">
+      <p class="ladehinweis">Lädt…</p>
+    </div>
+    </main>
+   </div>
+  </section>
+  <!-- ================= SEITE: EINSTELLUNGEN ================= -->
+  <section id="page-einstellungen" class="page">
+   <div class="inhalt">
+    <!-- Modellkatalog-Filter als echte linke Seitenleiste (Korrektur 2026-08-28 spaet:
+         Filter gehoeren nach links wie im Mockup Runde 11, nicht in die Mittelspalte).
+         Runde 12 (C15 v2 Punkt 6, verschaerft durch Live-Feedback 2026-08-28 Zwischenstand):
+         Seitenleiste im Startseiten-Untermenue-Look (.einst-nav) -- EIN Klick schaltet UNTER
+         "Einstellungen" um wie ein eigener Unterseiten-Wechsel (nicht scrollen!): der geklickte
+         Hauptpunkt wird "aktiv" (Primaerfarbe + linke Leiste), sein Abschnitt (.einst-abschnitt in
+         der Mittelspalte) wird gezeigt, alle anderen Abschnitte werden per `hidden` ausgeblendet;
+         der Filter-Block haengt nur am "Modellkatalog"-Punkt und ist per CSS nur sichtbar, wenn
+         dessen <li> "aktiv" ist (style.css ".einst-nav > li.aktiv > .filter-block"). Kein echter
+         Hash-Link -- die Seite ist hash-geroutet (router.js), ein "#<abschnitt-id>"-Href wuerde
+         auf "start" zurueckfallen; wireEinstNav()/zeigeEinstAbschnitt() in katalog.js fangen den
+         Klick per preventDefault() ab. IDs mk-suche/mk-eignung/mk-herkunft/mk-anbieter/
+         mk-filter-zaehler bleiben unveraendert -- katalog.js haengt an genau diesen IDs. -->
+    <aside class="seitenleiste" id="mk-seitenleiste" aria-label="Modellkatalog-Filter">
+      <p class="eyebrow">Einstellungen</p>
+      <ul class="einst-nav" id="einst-nav">
+        <li class="aktiv">
+          <a href="#" data-einst-ziel="modellkatalog-abschnitt">Modellkatalog</a>
+          <div class="filter-block">
+            <div class="filter-gruppe">
+              <p class="eyebrow">Filter</p>
+              <label for="mk-suche" class="caption" style="display:block;">Modell suchen</label>
+              <input type="search" id="mk-suche" class="projekt-suche mk-suche" placeholder="Modell suchen…" aria-label="Modell suchen">
+            </div>
+            <div class="filter-gruppe">
+              <p class="eyebrow">Eignung <span class="eyebrow-zusatz">(Artificial Analysis)</span></p>
+              <div class="mk-eignung" id="mk-eignung" role="group" aria-label="Eignung (Artificial Analysis)">
+                <button type="button" data-eignung="alle" aria-pressed="true">Alle</button>
+                <button type="button" data-eignung="coding" aria-pressed="false">Coding</button>
+                <button type="button" data-eignung="reasoning" aria-pressed="false">Reasoning</button>
+                <button type="button" data-eignung="agentic" aria-pressed="false">Agentic</button>
+                <button type="button" data-eignung="preisleistung" aria-pressed="false">Preis-Leistung</button>
+                <button type="button" data-eignung="geschwindigkeit" aria-pressed="false">Geschwindigkeit</button>
+              </div>
+            </div>
+            <div class="filter-gruppe">
+              <p class="eyebrow">Anbieter</p>
+              <ul class="quellen-liste" id="mk-anbieter" role="group" aria-label="Anbieter">
+                <li class="filter-zeile"><input type="checkbox" id="mkq-claude" data-anbieter="claude" checked><label for="mkq-claude"><span class="quelle-chip quelle-claude">Claude</span></label></li>
+                <li class="filter-zeile"><input type="checkbox" id="mkq-ollama" data-anbieter="ollama" checked><label for="mkq-ollama"><span class="quelle-chip">Ollama</span></label></li>
+                <li class="filter-zeile"><input type="checkbox" id="mkq-openrouter" data-anbieter="openrouter" checked><label for="mkq-openrouter"><span class="quelle-chip quelle-openrouter">OpenRouter</span></label></li>
+                <li class="filter-zeile"><input type="checkbox" id="mkq-requesty" data-anbieter="requesty" checked><label for="mkq-requesty"><span class="quelle-chip quelle-requesty">Requesty</span></label></li>
+              </ul>
+            </div>
+            <div class="filter-gruppe">
+              <p class="eyebrow">Herkunft</p>
+              <div class="mk-herkunft chip-reihe" id="mk-herkunft" role="group" aria-label="Herkunft"></div>
+              <!-- Drei Zusatzfilter (C15 v2 Punkt 3/6 + Auftrag 2026-08-30 "nur Latest") --
+                   Feldnamen bewusst mit Bindestrich ("nur-lokal"), nicht Unterstrich: der globale
+                   dsgvo-guard-Hook (G6) sperrt Shell-/Dateibefehle mit dem Muster "_lokal", das
+                   gilt auch fuer HTML-IDs, die in Tests als String vorkommen koennten. -->
+              <!-- Reihenfolge + Beschriftung Maintainer 2026-08-30: Latest / lokal / EU-Region, ohne "nur",
+                   gleiche Abstaende. "Latest" blendet status==="legacy" aus. -->
+              <p class="filter-zeile" style="margin-top:10px;margin-bottom:0;"><input type="checkbox" id="mk-nur-latest"><label for="mk-nur-latest">Latest</label></p>
+              <p class="filter-zeile" style="margin-top:2px;margin-bottom:0;"><input type="checkbox" id="mk-nur-lokal"><label for="mk-nur-lokal">On-Premise</label></p>
+              <p class="filter-zeile" style="margin-top:2px;margin-bottom:0;"><input type="checkbox" id="mk-eu-ohne-training"><label for="mk-eu-ohne-training">EU-Region ohne Training</label></p>
+            </div>
+            <p class="caption" id="mk-filter-zaehler" aria-live="polite"></p>
+          </div>
+        </li>
+        <li><a href="#" data-einst-ziel="einst-projekte-abschnitt">Projekte</a></li>
+        <li><a href="#" data-einst-ziel="einst-preistabelle-abschnitt">Preistabelle</a></li>
+        <li><a href="#" data-einst-ziel="einst-redaktion-abschnitt">Redaktion</a></li>
+        <li><a href="#" data-einst-ziel="einst-retention-abschnitt">Retention</a></li>
+      </ul>
+    </aside>
+    <!-- Befund 2026-08-30: die Einstellungen-Mitte wuchs natuerlich (kein Hoehenmuster) und
+         ragte unter die gemeinsame Unterkante Seitenleiste/#chat -- sichtbar, seit Katalog- und
+         Preis-Tabelle laenger sind. Dasselbe Fix-oben/Scroll-innen-Muster wie die Detail-Seiten:
+         .detail-mitte (feste Viewport-Hoehe, Unterkante = Chat-Unterkante) + .detail-scroll als
+         einziger Innen-Scrollbereich. Waechter: tests/test_einstellungen_layout.py. -->
+    <main class="hauptspalte detail-mitte">
+    <div class="detail-scroll">
+    <!-- ================= Modellkatalog (Paket L, CONTRACTS.md C15) =================
+         Persona-Kacheln (Standardmodelle je VICO/VICA/CURA + LOKAL-Bestand) + sortier-/
+         filterbare Katalogtabelle. Bauvorlage: _work/sitzungsbeleg-modellkatalog-
+         mockup.html (Runde 11) -- Filter laufen hier als Leiste UEBER der Tabelle statt als
+         eigene Seitenleiste (Einstellungen hat keine Unterbereich-Navigation, s. bestehende
+         Abschnitte "Projekte"/"Preistabelle" darunter: eine durchlaufende Seite, kein Sub-Nav). -->
+    <div class="abschnitt einst-abschnitt" id="modellkatalog-abschnitt">
+      <h2>Standardmodelle
+        <button type="button" class="hilfe-btn" aria-controls="hilfe-standardmodelle" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+      </h2>
+      <p class="hilfe-text" id="hilfe-standardmodelle" hidden>Je Persona die Anbieterwege, ueber die sie heute erreichbar ist -- der farblich hervorgehobene Weg ist der aktuelle Standard, der gruene Punkt zeigt Erreichbarkeit. ON-PREMISE zeigt zusaetzlich den reinen Vor-Ort-Bestand ohne Cloud-Anteil.</p>
+      <div class="persona-kacheln" id="persona-kacheln" style="margin-top:12px;">
+        <p class="ladehinweis">Lädt…</p>
+      </div>
+
+      <div class="kat-kopf" style="margin-top:22px;">
+        <div class="kat-kopf-zeile">
+          <div class="kat-titel">
+            <h2>Modellkatalog
+              <button type="button" class="hilfe-btn" aria-controls="hilfe-modellkatalog" aria-expanded="false" aria-label="Erklärung anzeigen">?</button>
+            </h2>
+            <p class="caption" id="modellkatalog-zaehler" style="margin-top:4px">Lädt…</p>
+          </div>
+          <!-- C15 v2 Punkt 4: startet POST /api/modellkatalog/aktualisieren, waehrend des Laufs
+               deaktiviert + "Aktualisiert…" (katalog.js wireAktualisieren/pollAktualisierenStatus). -->
+          <button type="button" class="outline-btn" id="mk-aktualisieren-btn" data-aktualisieren-btn style="white-space:nowrap">Jetzt aktualisieren</button>
+        </div>
+        <p class="hilfe-text" id="hilfe-modellkatalog" hidden>Alle bekannten Modelle je Anbieter (Anthropic/Ollama/OpenRouter/Requesty). Der Preis zeigt den guenstigsten Anbieter, alle Anbieterpreise stehen im Tooltip der Zelle. Aktualisiert per <code class="mono">katalog-update</code> (CLI) oder ueber den Knopf "Jetzt aktualisieren".</p>
+        <p class="caption fehlerhinweis" id="mk-aktualisieren-hinweis" hidden></p>
+      </div>
+
+
+
+      <div class="tabelle-gitter" id="modellkatalog-gitter" style="margin-top:12px;">
+        <div class="tabelle-kopf">
+          <table>
+            <colgroup>
+              <col style="width:174px"><col style="width:86px"><col style="width:190px"><col style="width:90px">
+              <col style="width:95px"><col style="width:95px"><col style="width:95px"><col style="width:95px"><col style="width:120px">
+            </colgroup>
+            <thead><tr>
+              <th aria-sort="ascending"><button type="button" class="th-sort" data-col="id" data-type="text">Modell <span class="sort-arrow">▲</span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="herkunft" data-type="text">Herkunft <span class="sort-arrow"></span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="anbieter" data-type="text">Anbieter <span class="sort-arrow"></span></button></th>
+              <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="kontext_k" data-type="num">Kontext (k) <span class="sort-arrow"></span></button></th>
+              <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="eingabe_usd" data-type="num">Eingabe $/M <span class="sort-arrow"></span></button></th>
+              <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="ausgabe_usd" data-type="num">Ausgabe $/M <span class="sort-arrow"></span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="aa_index" data-type="num">AA-Index <span class="sort-arrow"></span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="coding_index" data-type="num">Coding <span class="sort-arrow"></span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="stand" data-type="text">Stand <span class="sort-arrow"></span></button></th>
+            </tr></thead>
+          </table>
+        </div>
+        <div class="tabelle-koerper mk-koerper" id="modellkatalog-koerper">
+          <table>
+            <colgroup>
+              <col style="width:174px"><col style="width:86px"><col style="width:190px"><col style="width:90px">
+              <col style="width:95px"><col style="width:95px"><col style="width:95px"><col style="width:95px"><col style="width:120px">
+            </colgroup>
+            <tbody id="modellkatalog-body"><tr><td colspan="9" class="ladehinweis">Lädt…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="abschnitt einst-abschnitt" id="einst-projekte-abschnitt" hidden>
+      <h2>Projekte</h2>
+      <p class="filter-zeile" style="margin-top:8px;">
+        <input type="checkbox" id="einst-ausgeblendete-zeigen">
+        <label for="einst-ausgeblendete-zeigen">Ausgeblendete Projekte in der Filterliste zeigen (z. B. private Ordner)</label>
+      </p>
+    </div>
+    <div class="abschnitt einst-abschnitt" id="einst-preistabelle-abschnitt" hidden>
+      <!-- Auftrag 2026-08-30 Nachtrag: Katalog-Spaltenbild 1:1 (Modell/Herkunft/Anbieter/
+           Kontext/Eingabe/Ausgabe/Stand) OHNE Sterne- und Latest/Legacy-Chips und ohne
+           AA-Index/Coding, plus "Verwendet in" ganz rechts. Inhalt = die scharf geschaltete
+           Abrechnungsliste (modelle.json), angereichert aus dem geladenen Katalog-Snapshot
+           (Zwischenstand; Backend-Projection folgt, Plan docs/plans/
+           preistabelle-master-sicht-plan.md). Der Knopf startet DIESELBE Aktualisierungs-
+           Kette wie der Katalog-Knopf (eine Kette, beide Sichten). -->
+      <div class="kat-kopf">
+        <div class="kat-kopf-zeile">
+          <div class="kat-titel">
+            <h2>Preistabelle <span class="caption">(<span id="preistabelle-waehrung">—</span> je 1M Token, scharf geschaltet aus modelle.json)</span></h2>
+          </div>
+          <button type="button" class="outline-btn" id="pt-aktualisieren-btn" data-aktualisieren-btn style="white-space:nowrap"
+            title="Aktualisiert den Katalog-Abgleich (Kontext/Herkunft/Anbieterwege). Die scharfen Preise selbst bleiben kuratiert in modelle.json.">Jetzt aktualisieren</button>
+        </div>
+      </div>
+      <div class="tabelle-gitter" id="preistabelle-gitter" style="margin-top:12px;">
+        <div class="tabelle-kopf">
+          <table>
+            <colgroup>
+              <col style="width:260px"><col style="width:80px"><col style="width:130px">
+              <col style="width:75px"><col style="width:95px"><col style="width:95px">
+              <col style="width:100px"><col style="width:205px">
+            </colgroup>
+            <thead><tr>
+              <th aria-sort="ascending"><button type="button" class="th-sort" data-col="modell" data-type="text">Modell <span class="sort-arrow">▲</span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="herkunft" data-type="text">Herkunft <span class="sort-arrow"></span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="anbieter" data-type="text">Anbieter <span class="sort-arrow"></span></button></th>
+              <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="kontext" data-type="num">Kontext (k) <span class="sort-arrow"></span></button></th>
+              <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="eingabe" data-type="num">Eingabe $/M <span class="sort-arrow"></span></button></th>
+              <th class="num" aria-sort="none"><button type="button" class="th-sort" data-col="ausgabe" data-type="num">Ausgabe $/M <span class="sort-arrow"></span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="stand" data-type="text">Stand <span class="sort-arrow"></span></button></th>
+              <th aria-sort="none"><button type="button" class="th-sort" data-col="verwendet" data-type="text">Verwendet in <span class="sort-arrow"></span></button></th>
+            </tr></thead>
+          </table>
+        </div>
+        <div class="tabelle-koerper pt-koerper" id="preistabelle-koerper">
+          <table>
+            <colgroup>
+              <col style="width:260px"><col style="width:80px"><col style="width:130px">
+              <col style="width:75px"><col style="width:95px"><col style="width:95px">
+              <col style="width:100px"><col style="width:205px">
+            </colgroup>
+            <tbody id="preistabelle-body"><tr><td colspan="8" class="ladehinweis">Lädt…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="abschnitt einst-abschnitt" id="einst-redaktion-abschnitt" hidden>
+      <h2>Redaktion</h2>
+      <p class="caption">Jeder Beleg läuft vor jeder Speicherung/Ausgabe durch ein Redaktions-Sicherheitsnetz: Pfade, Secrets,
+        E-Mail-Adressen und Freitexte über 80 Zeichen werden entfernt oder durch <code class="mono">&lt;redigiert&gt;</code>
+        ersetzt, bevor irgendetwas in die Datenbank oder auf den Bildschirm gelangt. Dieses Dashboard zeigt ausschließlich
+        Felder aus dem bereits bereinigten Beleg-Dokument — nie ein Rohtranskript.</p>
+    </div>
+    <div class="abschnitt einst-abschnitt" id="einst-retention-abschnitt" hidden>
+      <h2>Retention</h2>
+      <p class="caption">Vorschlag (Plan „Sicherheit/Datenschutz"): abgeleitete Belege 180 Tage vorhalten, danach löschen.
+        Noch keine automatische Durchsetzung — reine Anzeige.</p>
+    </div>
+    </div>
+    </main>
+   </div>
+  </section>
+  <!-- ================= CHAT: "Besprechung" (Phase 1 D, CONTRACTS.md C4/C5/C7) =================
+       Eine Instanz fuer alle Seiten (wie <header class="kopf">, Entscheid 2026-08-26) statt
+       je Seite ein eigener ".freiraum" -- rechte Spalte bleibt IMMER sichtbar (Entscheid 4/6),
+       docked rechts unter dem Kopf per position:fixed (style.css "/* Chat */"), Inhalt wird von
+       chat.js aus der aktuellen Route befuellt (sitzung_logisch = aktuelle Sitzungs-ID, sonst
+       null). Mockup-Referenz: _work/sitzungsbeleg-chat-mockup.html Frame A2. -->
+  <aside id="chat" class="chat-spalte" aria-label="Besprechung">
+    <div class="chat-kopf">
+      <h2 class="chat-titel">Besprechung</h2>
+      <!-- Phase 2 F (Feedback 2026-08-27): Anbieter-Knoepfe werden von chat.js aus einer
+           Datenliste gerendert (nicht hart verdrahtet) -- ein weiterer Anbieter braucht nur einen
+           neuen Eintrag in chat.js' ANBIETER, kein Markup hier. Modellwahl ist eine eigene Zeile
+           darunter (style.css "/* ---- Phase 2 F ---- */"). -->
+      <div class="chat-anbieter-zeile" role="group" aria-label="Anbieter wählen" id="chat-anbieter"></div>
+      <select class="chat-modell-select" id="chat-modell" aria-label="Modell wählen"></select>
+      <!-- Statischer Vor-JS-Fallback -- MUSS wortgleich mit chat.js aktualisiereDatenschutzChip()
+           bleiben (Layout-Nachlese 2026-08-28 Punkt 5: JS ist die eine Quelle der Wahrheit,
+           dieser Text ist nur die Anzeige, bevor JS ihn beim Laden ueberschreibt). -->
+      <p class="chat-datenschutz ok" id="chat-datenschutz">
+        <span class="punkt" aria-hidden="true"></span><span id="chat-datenschutz-text">cloud-ok → Claude/OpenRouter/Requesty zulässig</span>
+      </p>
+      <!-- Nachtrag Phase 2 OpenRouter: zusaetzlicher Datenschutz-Hinweis, nur sichtbar wenn
+           OpenRouter gewaehlt ist (chat.js aktualisiereOpenrouterHinweis()). -->
+      <p class="chat-hinweis-openrouter caption" id="chat-hinweis-openrouter" hidden>OpenRouter: ZDR-Filter im Konto aktiv (kein Training, keine Speicherung), Personendaten nie.</p>
+      <!-- Nachtrag Requesty (2026-08-28): analog OpenRouter, plus Schalter fuer den Default-
+           Filter (nur EU-Modelle ohne Trainingsnutzung, chat.js requestyAlle). -->
+      <p class="chat-hinweis-requesty caption" id="chat-hinweis-requesty" hidden>
+        EU-Modelle ohne Training, Liste gefiltert.
+        <label><input type="checkbox" id="chat-requesty-alle"> alle zeigen</label>
+      </p>
+      <p class="chat-kontext" id="chat-kontext"></p>
+    </div>
+    <div class="chat-verlauf" id="chat-verlauf" aria-live="polite"></div>
+    <form class="chat-eingabe" id="chat-formular">
+      <input type="text" id="chat-eingabe-feld" placeholder="Nachricht an die Besprechung…" aria-label="Nachricht an die Besprechung" autocomplete="off">
+      <button type="submit" class="primaer-btn" id="chat-senden-btn">Senden</button>
+    </form>
+  </aside>
+</div>
+<script type="module" src="/static/js/app.js?v=__VERSION__"></script>
+</body>
+</html>

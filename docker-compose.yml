@@ -1,0 +1,23 @@
+# Postgres 16 for sitzungsbeleg. Loopback-only port binding. Credentials come from a local
+# .env file next to this one (see .env.example) -- never commit a real .env.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sitzungsbeleg-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DB:?}
+      POSTGRES_USER: ${PG_SUPERUSER:?}
+      POSTGRES_PASSWORD: ${PG_SUPER_PASSWORD:?}
+    ports:
+      - "127.0.0.1:${PG_BIND_PORT:-5434}:5432"
+    volumes:
+      - sitzungsbeleg_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_SUPERUSER:?} -d ${PG_DB:?}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sitzungsbeleg_pg_data:

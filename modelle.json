@@ -1,0 +1,704 @@
+{
+    "default_graphify": "minimax-m3:cloud",
+    "default_vico_ollama": "kimi-k3:cloud",
+    "default_vico_openrouter": "openai/gpt-5.6-sol",
+    "default_vico_requesty": "xai/grok-4.6",
+    "persona_wege": {
+        "vico": [
+            {
+                "quelle": "claude",
+                "modell": "claude-sonnet-5",
+                "primaer": true
+            },
+            {
+                "quelle": "ollama",
+                "modell": "kimi-k3:cloud",
+                "primaer": false
+            }
+        ],
+        "vica": [
+            {
+                "quelle": "ollama",
+                "modell": "kimi-k3:cloud",
+                "primaer": true
+            }
+        ],
+        "cura": [
+            {
+                "quelle": "ollama",
+                "modell": "glm-5.3-flash:cloud",
+                "primaer": true
+            },
+            {
+                "quelle": "ollama",
+                "modell": "qwen3.5:9b",
+                "primaer": true,
+                "ebene": "geschuetzt"
+            }
+        ]
+    },
+    "preise": {
+        "waehrung": "USD",
+        "stand": "2026-08-26",
+        "modelle": {
+            "claude-fable-5": {
+                "input": 10,
+                "output": 50,
+                "cache_write": 12.5,
+                "cache_read": 1,
+                "cache_quelle": "verifiziert",
+                "herkunft": "anthropic"
+            },
+            "claude-opus-5": {
+                "input": 5,
+                "output": 25,
+                "cache_write": 6.25,
+                "cache_read": 0.5,
+                "cache_quelle": "abgeleitet",
+                "herkunft": "anthropic"
+            },
+            "claude-opus-4-8": {
+                "input": 5,
+                "output": 25,
+                "cache_write": 6.25,
+                "cache_read": 0.5,
+                "cache_quelle": "abgeleitet",
+                "herkunft": "anthropic"
+            },
+            "claude-sonnet-5": {
+                "input": 2,
+                "output": 10,
+                "cache_write": 2.5,
+                "cache_read": 0.2,
+                "cache_quelle": "abgeleitet",
+                "herkunft": "anthropic"
+            },
+            "claude-haiku-4-5-20251001": {
+                "input": 1,
+                "output": 5,
+                "cache_write": 1.25,
+                "cache_read": 0.1,
+                "cache_quelle": "abgeleitet",
+                "herkunft": "anthropic"
+            },
+            "gpt-5.5": {
+                "input": 5,
+                "output": 30,
+                "cache_read": 0.5,
+                "cache_quelle": "verifiziert",
+                "quelle": "developers.openai.com/api/docs/pricing",
+                "stand": "2026-08-26",
+                "herkunft": "openai"
+            },
+            "gpt-5.6-terra": {
+                "input": 2,
+                "output": 12,
+                "cache_read": 0.2,
+                "cache_quelle": "verifiziert",
+                "quelle": "developers.openai.com/api/docs/pricing",
+                "stand": "2026-08-26",
+                "herkunft": "openai"
+            },
+            "gpt-5.6-sol": {
+                "input": 4,
+                "output": 20,
+                "cache_read": 0.4,
+                "cache_quelle": "verifiziert",
+                "quelle": "developers.openai.com/api/docs/pricing",
+                "stand": "2026-08-26",
+                "herkunft": "openai"
+            },
+            "nvidia/nemotron-3-ultra-550b-a55b": {
+                "input": 0.5,
+                "output": 2.2,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "kein Caching ueber OpenRouter",
+                "quelle": "openrouter.ai/api/v1/models",
+                "stand": "2026-08-28",
+                "herkunft": "openrouter"
+            },
+            "z-ai/glm-5.2:free": {
+                "input": 0,
+                "output": 0,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "kein Caching ueber OpenRouter",
+                "quelle": "openrouter.ai/api/v1/models",
+                "stand": "2026-08-27",
+                "herkunft": "openrouter"
+            },
+            "sference/kimi-k3": {
+                "input": 2.25,
+                "output": 11.25,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "kein Caching ueber Requesty",
+                "quelle": "router.requesty.ai/v1/models (EU, kein Training, keine Speicherung)",
+                "stand": "2026-08-28",
+                "herkunft": "requesty",
+                "preis_art": "liste",
+                "meldet_als": [
+                    "moonshotai/Kimi-K3"
+                ]
+            },
+            "sference/glm-5.3-flash": {
+                "input": 0.2,
+                "output": 0.5,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "kein Caching ueber Requesty",
+                "quelle": "router.requesty.ai/v1/models (EU, kein Training, keine Speicherung)",
+                "stand": "2026-08-28",
+                "herkunft": "requesty",
+                "preis_art": "liste"
+            },
+            "glm-5.2": {
+                "input": 1.19,
+                "output": 3.74,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis z-ai/glm-5.2, Stand 2026-08-27",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "kimi-k3": {
+                "input": 3.0,
+                "output": 15.0,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis moonshotai/kimi-k3, Stand 2026-08-30",
+                "stand": "2026-08-30",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "glm-5.3-flash": {
+                "input": 0.075,
+                "output": 0.25,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis z-ai/glm-5.3-flash, Stand 2026-08-30 (Achtung: guenstiger als der Requesty-Listenpreis 0,15/0,5 -- Referenz ist der OpenRouter-Tarif wie bei allen Ollama-Referenzen)",
+                "stand": "2026-08-30",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "glm-5.3": {
+                "input": 1.4,
+                "output": 4.4,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis z-ai/glm-5.3, Stand 2026-08-30",
+                "stand": "2026-08-30",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "minimax-m3": {
+                "input": 0.3,
+                "output": 1.2,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis minimax/minimax-m3, Stand 2026-08-27",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "kimi-k2.6": {
+                "input": 0.95,
+                "output": 4.0,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis moonshotai/kimi-k2.6, Stand 2026-08-27",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "nemotron-3-super": {
+                "input": 0.085,
+                "output": 0.4,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis nvidia/nemotron-3-super-120b-a12b, Stand 2026-08-27",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "qwen3-vl": {
+                "input": 0.21,
+                "output": 1.9,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis qwen/qwen3-vl-235b-a22b-instruct, Stand 2026-08-27",
+                "referenz": "qwen3-vl-235b-a22b-instruct",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "gemini-3-flash-preview": {
+                "input": 0.5,
+                "output": 3.0,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis google/gemini-3-flash-preview, Stand 2026-08-27",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "mistral-large-3": {
+                "input": 0.5,
+                "output": 1.5,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis mistralai/mistral-large-2512, Stand 2026-08-27",
+                "referenz": "mistral-large-2512",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "gemma4": {
+                "input": 0.09,
+                "output": 0.34,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis google/gemma-4-31b-it, Stand 2026-08-27",
+                "referenz": "gemma-4-31b-it",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "gpt-oss": {
+                "input": 0.03,
+                "output": 0.13,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "Ollama Cloud: kein Cache-Tarif",
+                "quelle": "OpenRouter-Listenpreis openai/gpt-oss-20b, Stand 2026-08-27",
+                "referenz": "gpt-oss-20b",
+                "stand": "2026-08-27",
+                "herkunft": "ollama",
+                "preis_art": "referenz"
+            },
+            "openai/gpt-5.6-sol": {
+                "input": 2.0,
+                "output": 10.0,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "kein Caching ueber OpenRouter",
+                "quelle": "openrouter.ai/api/v1/models",
+                "stand": "2026-08-30",
+                "herkunft": "openrouter"
+            },
+            "xai/grok-4.6": {
+                "input": 2.0,
+                "output": 6.0,
+                "cache_write": 0,
+                "cache_read": 0,
+                "cache_quelle": "kein Caching ueber Requesty",
+                "quelle": "router.requesty.ai/v1/models (xAI-Host US, Requesty zero-retention)",
+                "stand": "2026-08-30",
+                "herkunft": "requesty",
+                "preis_art": "liste",
+                "meldet_als": [
+                    "grok-4.6",
+                    "xai/grok-4.6"
+                ]
+            }
+        }
+    },
+    "kontext_sterne_regel": "ctx>262144 => 3 (>256K) | ctx>131072 => 2 (129-256K) | sonst 1 (<=128K)",
+    "modelle": {
+        "minimax-m3:cloud": {
+            "typ": "cloud",
+            "kontext": 524288,
+            "params": "0",
+            "quant": null,
+            "caps": [
+                "completion",
+                "tools",
+                "vision",
+                "thinking"
+            ],
+            "kontext_sterne": 3,
+            "praesenz": "list",
+            "coding": 3,
+            "reasoning": 3,
+            "vision": null,
+            "gesamt": 5,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "2026-06-14",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "glm-5.2:cloud": {
+            "typ": "cloud",
+            "kontext": 1048576,
+            "params": "756162687872",
+            "quant": null,
+            "caps": [
+                "completion",
+                "tools",
+                "thinking"
+            ],
+            "kontext_sterne": 3,
+            "praesenz": "list",
+            "coding": 3,
+            "reasoning": 3,
+            "vision": null,
+            "gesamt": 5,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "kimi-k2.6:cloud": {
+            "typ": "cloud",
+            "kontext": 262144,
+            "params": "1042000000000",
+            "quant": "INT4",
+            "caps": [
+                "completion",
+                "tools",
+                "vision",
+                "thinking"
+            ],
+            "kontext_sterne": 2,
+            "praesenz": "list",
+            "coding": 3,
+            "reasoning": 2,
+            "vision": null,
+            "gesamt": 3,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "nemotron-3-super:cloud": {
+            "typ": "cloud",
+            "kontext": 262144,
+            "params": "120000000000",
+            "quant": "NVFP4",
+            "caps": [
+                "completion",
+                "tools",
+                "thinking"
+            ],
+            "kontext_sterne": 2,
+            "praesenz": "list",
+            "coding": 2,
+            "reasoning": 3,
+            "vision": null,
+            "gesamt": 3,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "qwen3-vl:235b-cloud": {
+            "typ": "cloud",
+            "kontext": 262144,
+            "params": null,
+            "quant": null,
+            "caps": [],
+            "kontext_sterne": 2,
+            "praesenz": "list",
+            "coding": 2,
+            "reasoning": 3,
+            "vision": 3,
+            "gesamt": 3,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "2026-06-14",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "gemini-3-flash-preview:cloud": {
+            "typ": "cloud",
+            "kontext": 1048576,
+            "params": null,
+            "quant": null,
+            "caps": [],
+            "kontext_sterne": 3,
+            "praesenz": "list",
+            "coding": 1,
+            "reasoning": 1,
+            "vision": null,
+            "gesamt": 2,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "mistral-large-3:675b-cloud": {
+            "typ": "cloud",
+            "kontext": 262144,
+            "params": "675000000000",
+            "quant": "FP8",
+            "caps": [
+                "completion",
+                "tools",
+                "vision"
+            ],
+            "kontext_sterne": 2,
+            "praesenz": "list",
+            "coding": 2,
+            "reasoning": 2,
+            "vision": null,
+            "gesamt": 2,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "gemma4:31b-cloud": {
+            "typ": "cloud",
+            "kontext": 262144,
+            "params": "32682372656",
+            "quant": "BF16",
+            "caps": [
+                "completion",
+                "tools",
+                "vision",
+                "thinking"
+            ],
+            "kontext_sterne": 2,
+            "praesenz": "list",
+            "coding": 2,
+            "reasoning": 2,
+            "vision": null,
+            "gesamt": 2,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "gpt-oss:20b-cloud": {
+            "typ": "cloud",
+            "kontext": 131072,
+            "params": "20914757184",
+            "quant": "MXFP4",
+            "caps": [
+                "completion",
+                "tools",
+                "thinking"
+            ],
+            "kontext_sterne": 1,
+            "praesenz": "list",
+            "coding": 2,
+            "reasoning": 1,
+            "vision": null,
+            "gesamt": 2,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "-",
+            "herkunft": "ollama"
+        },
+        "qwen3:14b": {
+            "typ": "lokal",
+            "kontext": 40960,
+            "params": "14.8B",
+            "quant": "Q4_K_M",
+            "caps": [
+                "completion",
+                "tools",
+                "thinking"
+            ],
+            "kontext_sterne": 1,
+            "praesenz": "list",
+            "coding": 3,
+            "reasoning": 2,
+            "vision": null,
+            "gesamt": 3,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "9.3 GB",
+            "herkunft": "ollama"
+        },
+        "hf.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF:Q4_K_M": {
+            "typ": "lokal",
+            "kontext": 131072,
+            "params": "8.19B",
+            "quant": "Q4_K_M",
+            "caps": [
+                "completion",
+                "tools",
+                "thinking"
+            ],
+            "kontext_sterne": 1,
+            "praesenz": "list",
+            "coding": 2,
+            "reasoning": 3,
+            "vision": null,
+            "gesamt": 3,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "5.0 GB",
+            "herkunft": "ollama"
+        },
+        "nomic-embed-text:latest": {
+            "typ": "lokal",
+            "kontext": 2048,
+            "params": "137M",
+            "quant": "F16",
+            "caps": [
+                "embedding"
+            ],
+            "kontext_sterne": 1,
+            "praesenz": "list",
+            "coding": null,
+            "reasoning": null,
+            "vision": null,
+            "gesamt": null,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "size": "274 MB",
+            "herkunft": "ollama"
+        },
+        "qwen3.5:9b": {
+            "typ": "lokal",
+            "kontext": 262144,
+            "params": "9.7B",
+            "quant": "Q4_K_M",
+            "caps": [
+                "completion",
+                "tools",
+                "vision",
+                "thinking"
+            ],
+            "size": "6.6 GB",
+            "kontext_sterne": 2,
+            "praesenz": "list",
+            "coding": 3,
+            "reasoning": 2,
+            "vision": 2,
+            "gesamt": 3,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "aktiv",
+            "herkunft": "ollama"
+        },
+        "hf.co/mradermacher/EuroLLM-9B-Instruct-2512-GGUF:Q4_K_M": {
+            "typ": "lokal",
+            "kontext": 32768,
+            "params": "9.15B",
+            "quant": "Q4_K_M",
+            "caps": [
+                "completion"
+            ],
+            "size": "5.6 GB",
+            "kontext_sterne": 1,
+            "praesenz": "list",
+            "coding": null,
+            "reasoning": null,
+            "vision": null,
+            "gesamt": 1,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "2026-07-16",
+            "status": "aktiv",
+            "herkunft": "ollama"
+        },
+        "glm-5.3-flash:cloud": {
+            "typ": "cloud",
+            "kontext": 1048576,
+            "params": "321323031390",
+            "quant": "FP8",
+            "caps": [
+                "completion",
+                "tools",
+                "vision",
+                "thinking"
+            ],
+            "size": "-",
+            "kontext_sterne": 3,
+            "praesenz": "list",
+            "coding": null,
+            "reasoning": null,
+            "vision": null,
+            "gesamt": null,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "unbewertet"
+        },
+        "kimi-k3:cloud": {
+            "typ": "cloud",
+            "kontext": 1048576,
+            "params": "2812000000000",
+            "quant": "MXFP4",
+            "caps": [
+                "completion",
+                "tools",
+                "vision",
+                "thinking"
+            ],
+            "size": "-",
+            "kontext_sterne": 3,
+            "praesenz": "list",
+            "coding": null,
+            "reasoning": null,
+            "vision": null,
+            "gesamt": null,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "unbewertet"
+        },
+        "glm-5.3:cloud": {
+            "typ": "cloud",
+            "kontext": 1048576,
+            "params": "753329940480",
+            "quant": "FP8",
+            "caps": [
+                "completion",
+                "tools",
+                "thinking"
+            ],
+            "size": "-",
+            "kontext_sterne": 3,
+            "praesenz": "list",
+            "coding": null,
+            "reasoning": null,
+            "vision": null,
+            "gesamt": null,
+            "kommentar": "",
+            "quelle": "",
+            "getestet": "",
+            "status": "unbewertet"
+        }
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "_hinweis": "Example mapping, hand-maintained. Maps a raw session project name (last path segment of cwd or git root) to {projekt, kontext} -- projekt is the canonical display name in the dashboard, kontext is one of {arbeit, voice, review, bewertung, test}. A compound key `<rohname>@<quelle>` takes precedence over the plain `<rohname>` (source-dependent resolution). `codex-<x>` without its own entry auto-resolves to the alias of `<x>` (if one exists) otherwise `<x>` itself, context review. A raw name with no entry at all keeps the raw name as project and gets context 'unzugeordnet'. Missing or broken file: fail-open, no alias applied. Replace the example entries below with your own projects.",
+  "my-project": {"projekt": "My Project", "kontext": "arbeit"},
+  "codex-my-project": {"projekt": "My Project", "kontext": "review"},
+  "my-project@codex": {"projekt": "My Project", "kontext": "review"},
+  "some-experiment": {"projekt": "Experiments", "kontext": "test"}
+}

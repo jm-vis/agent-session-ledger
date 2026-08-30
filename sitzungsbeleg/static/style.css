@@ -1,0 +1,1738 @@
+  @font-face {
+    font-family: 'Outfit';
+    src: url('/static/Outfit-VariableFont_wght.ttf') format('truetype-variations'),
+         url('/static/Outfit-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root, html { color-scheme: light dark; }
+
+  :root {
+    /* Sticky-Kopf (Feedback 2026-08-26, Zusatzpunkt 4): tatsaechliche Kopfhoehe wird von JS
+       (setKopfHoehe()) auf das Element geschrieben -- dieser Wert ist nur der Fallback vor dem
+       ersten Layout-Pass. .seitenleiste/.rail-spalte haengen ihren sticky-Versatz + ihre Hoehe
+       daran, damit beide Spalten IMMER exakt unter dem Kopf enden, egal wie hoch er ist.
+       --kopf-rand MUSS exakt dem padding-top von .inhalt (24px) entsprechen (Feedback
+       2026-08-26, Punkt 1): die Seitenleiste ruht anfangs bei kopf-hoehe + inhalt-padding-top;
+       war --kopf-rand kleiner (12px), sprang sie beim ersten Scrollen um die Differenz nach
+       oben, bevor sie einrastete. Gemessen: getBoundingClientRect().top bei scrollY=0 und
+       scrollY=500 sind jetzt identisch (0px Versatz), vorher 12px. */
+    --kopf-hoehe: 110px;
+    --kopf-rand: 24px;
+
+    /* Marke */
+    --primaer: #004F7C;
+    --primaer-kontrast: #FFFFFF;
+    --mittelblau: #8CACC9;
+    /* Persona-Markenfarben (C15 Modellkatalog, CONTRACTS.md C15/C14: "Farbcode aus der Orb-UI")
+       -- wortgleich mit den bestehenden .mini-orb--vico/vica/cura-Glowtoenen weiter unten, hier
+       zusaetzlich die kraeftigeren "Solid"-Toene fuer Fliesstext (Kartentitel). Theme-agnostisch
+       wie die Glow-Farben (keine Redefinition im Dark-Block noetig, ausreichend Kontrast in
+       beiden Themes). */
+    --pf-vico: var(--primaer);
+    --pf-vica: #7a4f9c;
+    --pf-cura: #1f7a5c;
+    /* Dezente Flaechentoenung fuer "das ist der aktuelle Standard"-Markierungen (Modellkatalog-
+       Tabellenzeile .zeile-standard + Persona-Kachel .persona-weg.primaer) -- 7% Primaerfarbe,
+       wortgleich mit dem Mockup-Wert. */
+    --primaer-tint: rgba(0, 79, 124, .07);
+
+    /* Fläche / Text (hell) */
+    --bg: #F5F7F9;
+    --flaeche: #FFFFFF;
+    --flaeche-alt: #EEF1F4;
+    --rand: #DEE3E8;
+    --rand-stark: #C6CDD5;
+    --text: #1A1A1A;
+    --text-body: #3A3A3A;
+    --text-muted: #5B6470;
+    --text-auf-primaer: #FFFFFF;
+    --link: #004F7C;
+
+    /* Status (hell) */
+    --erfolg: #1B6B5C;
+    --erfolg-bg: #E6F1EE;
+    --warnung: #D97706;
+    --warnung-bg: #FCF1DF;
+    --fehler: #C32F27;
+    --fehler-bg: #FBEAE8;
+    --kritisch: #7F1D1D;
+    --kritisch-bg: #F6E4E2;
+    --kritisch-text-auf-flaeche: #FFFFFF;
+
+    /* Quelle-Badges (Feedback 2026-08-26, Zusatzpunkt 4): je Anbieter dezent eingefärbt --
+       Rand+Text farbig, heller Flächenton, keine gefüllte Fläche (die bleibt dem Primärknopf
+       vorbehalten). Claude = Anthropic-Terrakotta, Codex = OpenAI-Grün, Ollama unverändert
+       Schwarz-Weiß (.quelle-chip-Basisfarben), Produkt = bestehende Sekundärfarbe (--mittelblau).
+       OpenRouter (Nachtrag Phase 2, Auftrag): #7624F4 ist OpenRouters eigener Marken-Token
+       `--or-grape` (aus ihrer kompilierten CSS, https://openrouter.ai, Chunk 1z0kcw0m5_mtc.css,
+       Fund 2026-08-27 -- dort auch als `--accent-*`/`--purple-*`-Basis verwendet). Der helle Bg-
+       Ton ist dieselbe Helligkeit/Sättigung wie --quelle-claude-bg, nur zum Grape-Farbton gedreht
+       (HSL-Methode, kein Raten). */
+    --quelle-claude: #D97757;
+    --quelle-claude-bg: #FBEDE6;
+    --quelle-codex: #10A37F;
+    --quelle-codex-bg: #E6F6F1;
+    --quelle-openrouter: #7624F4;
+    --quelle-openrouter-bg: #EEE6FB;
+    /* Requesty (Nachtrag 2026-08-28, Auftrag): App-Markenfarbe #1E88E5 (requesty.ai) --
+       heller Bg-Ton nach demselben HSL-Verfahren wie die anderen Quelle-Chips (Helligkeit/
+       Saettigung von --quelle-claude-bg, nur zum Blauton gedreht). */
+    --quelle-requesty: #1E88E5;
+    --quelle-requesty-bg: #E6F1FB;
+    --quelle-produkt: var(--mittelblau);
+    --quelle-produkt-bg: #EAF1F7;
+
+    --schatten: none;
+    --font-ui: 'Outfit', Calibri, sans-serif;
+    --font-mono: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121417;
+      --flaeche: #1B1F24;
+      --flaeche-alt: #20252B;
+      --rand: #2B3037;
+      --rand-stark: #3A4149;
+      --text: #ECEEF0;
+      --text-body: #D3D7DC;
+      --text-muted: #9AA2AC;
+      --text-auf-primaer: #FFFFFF;
+      --link: #8CACC9;
+      --primaer-ui: #8CACC9;
+
+      --erfolg: #3FA98D;
+      --erfolg-bg: #16241F;
+      --warnung: #F0A93E;
+      --warnung-bg: #2A2013;
+      --fehler: #E2685D;
+      --fehler-bg: #2B1917;
+      --kritisch: #C6483C;
+      --kritisch-bg: #2C1613;
+      --kritisch-text-auf-flaeche: #FFFFFF;
+
+      --quelle-claude: #E2957A;
+      --quelle-claude-bg: #2C1D14;
+      --quelle-codex: #3FCDA0;
+      --quelle-codex-bg: #12261F;
+      --quelle-openrouter: #A46DF8;
+      --quelle-openrouter-bg: #1D142C;
+      --quelle-requesty: #64B5F6;
+      --quelle-requesty-bg: #132A42;
+      --quelle-produkt: var(--mittelblau);
+      --quelle-produkt-bg: #1B2530;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #121417;
+    --flaeche: #1B1F24;
+    --flaeche-alt: #20252B;
+    --rand: #2B3037;
+    --rand-stark: #3A4149;
+    --text: #ECEEF0;
+    --text-body: #D3D7DC;
+    --text-muted: #9AA2AC;
+    --text-auf-primaer: #FFFFFF;
+    --link: #8CACC9;
+    --primaer-ui: #8CACC9;
+
+    --erfolg: #3FA98D;
+    --erfolg-bg: #16241F;
+    --warnung: #F0A93E;
+    --warnung-bg: #2A2013;
+    --fehler: #E2685D;
+    --fehler-bg: #2B1917;
+    --kritisch: #C6483C;
+    --kritisch-bg: #2C1613;
+    --kritisch-text-auf-flaeche: #FFFFFF;
+
+    --quelle-claude: #E2957A;
+    --quelle-claude-bg: #2C1D14;
+    --quelle-codex: #3FCDA0;
+    --quelle-codex-bg: #12261F;
+    --quelle-openrouter: #A46DF8;
+    --quelle-openrouter-bg: #1D142C;
+    --quelle-requesty: #64B5F6;
+    --quelle-requesty-bg: #132A42;
+    --quelle-produkt: var(--mittelblau);
+    --quelle-produkt-bg: #1B2530;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    /* Scroll-Anchoring aus (Feedback 2026-08-26, Punkt 2): ohne das kompensiert der Browser
+       automatisch die Scrollposition, wenn ein Kachel-Klick verstecktes Panel-Markup (z. B.
+       "Wiederkehrende Fehler") oberhalb der aktuellen Ansicht neu einblendet -- window.scrollY
+       sprang dadurch selbst OHNE scrollIntoView um die Panelhöhe nach unten. */
+    overflow-anchor: none;
+    background: var(--bg);
+    color: var(--text-body);
+    font-family: var(--font-ui);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { color: var(--text); margin: 0; font-family: var(--font-ui); }
+  h1 { font-size: 1.35rem; font-weight: 700; letter-spacing: 0.02em; }
+  h2 { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+  a { color: var(--link); }
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible, input:focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  .eyebrow {
+    font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); margin: 0 0 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .caption { font-size: 0.78rem; color: var(--text-muted); }
+  /* Layout-Reste R1 (2026-08-27, #sitzung/137): margin-top explizit statt UA-Default (~12px) --
+     die Fussnote ist ein <p>, dessen Default-Abstand zur vorherigen Kennzahlen-Karte beitrug. */
+  /* R1-Nachbesserung (2026-08-27, Live-Test #sitzung/137): Stempelzeile lag bei 943 statt
+     <=927 (Unterkante .detail-mitte/Seitenleiste/#chat). Hebel "die zwei Ø=Median-Fusszeilen
+     zusammenlegen oder eine weglassen" -- Delegation traegt bereits eine eigene Fusszeile
+     (delegation.js fussnoteHtml, direkt in der letzten Karte). Diese hier (Verbrauch/Ablauf,
+     kacheln.js fussnoteText) entfaellt komplett statt zusammengelegt zu werden: beide Texte
+     erklaeren dasselbe Ø-Konzept nur mit anderer Bedingung (Runden vs. Subagent-Start), ein
+     Zusammenlegen braeuchte gekoppeltes State zwischen zwei unabhaengig ladenden Modulen
+     (kacheln.js/delegation.js) fuer denselben Spareffekt. display:none statt Element/JS-Aufrufe
+     entfernen -- kleinster, sofort reversibler Eingriff. */
+  #kennzahlen-fussnote { display: none; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Grundgerüst ---------- */
+  .app-shell { margin: 0; padding: 0; }
+  .page { display: none; }
+  .page.aktiv { display: block; }
+
+  /* ---------- Kopf: Zeile 1 + Zeile 2, volle Fensterbreite (Mockup A, Entscheid 2026-08-26) ----------
+     Sticky auf ALLEN Seiten (Feedback 2026-08-26, Zusatzpunkt 4): eigener Seitenhintergrund
+     (sonst schimmert scrollender Inhalt durch) + z-index ueber .hauptspalte/.seitenleiste, aber
+     unter dem Zeitraum-.popover (z-index 30), der ohnehin ein Kind von .kopf ist. */
+  .kopf { width: 100%; background: var(--bg); border-bottom: 1px solid var(--rand); position: sticky; top: 0; z-index: 20; }
+  .kopf-inner { padding: 16px 24px 0; }
+  .zeile-1 { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; padding-bottom: 16px; }
+  .titel-block { margin-right: auto; display: flex; align-items: baseline; gap: 9px; }
+  /* Versions-Caption (Nachtrag 2026-08-27 Punkt 11, Entscheid: keine Fusszeile, stattdessen
+     hier -- kostet keine Hoehe, auf allen Seiten gleich, EINE Kopf-Instanz). */
+  .versions-tag { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+  .zeitraum-gruppe { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .gruppe-trenner { color: var(--rand-stark); }
+  /* Nachtrag 2026-08-27 Punkt 12 (Entscheid): Zeitraum-Steuerung zog aus der Titelzeile in
+     die Reiterzeile -- rechtsbuendig, rechte Kante deckungsgleich mit dem Hell/Dunkel/System-
+     Umschalter darueber (beide Zeilen sind gleich breit, `justify-content: space-between` allein
+     reicht darum ohne weitere Ausrichtung). `align-items: center` zentriert die Gruppe auf
+     dieselbe Hoehe wie die Reiter (live an 1880px/1512px verifiziert). */
+  .zeile-2 { padding-bottom: 0; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
+
+  .datumsnav { display: flex; align-items: center; gap: 6px; }
+  .datumsnav .datum { font-family: var(--font-mono); font-size: 0.86rem; min-width: 172px; text-align: center; }
+  .ghost-btn, .icon-btn, .outline-btn {
+    background: transparent; border: 1px solid var(--rand-stark); color: var(--text-body);
+    border-radius: 5px; padding: 6px 12px; font-family: var(--font-ui); font-size: 0.82rem;
+    cursor: pointer; line-height: 1.2;
+  }
+  .icon-btn { padding: 6px 9px; }
+  .ghost-btn:hover, .icon-btn:hover, .outline-btn:hover { border-color: var(--link); color: var(--link); }
+  .outline-btn { border-color: var(--link); color: var(--link); font-weight: 600; }
+
+  .segmented { display: inline-flex; border: 1px solid var(--rand-stark); border-radius: 5px; overflow: hidden; }
+  .segmented button {
+    background: var(--flaeche); border: none; border-right: 1px solid var(--rand-stark);
+    padding: 6px 12px; font-family: var(--font-ui); font-size: 0.82rem; color: var(--text-body); cursor: pointer;
+  }
+  .segmented button:last-child { border-right: none; }
+  .segmented button[aria-pressed="true"] { background: var(--primaer); color: var(--primaer-kontrast); font-weight: 600; }
+
+  /* Darstellungs-Umschalter: dreiteiliges Icon-Segment Hell/Dunkel/System (Mockup A) */
+  .theme-toggle { display: inline-flex; border: 1px solid var(--rand-stark); border-radius: 5px; overflow: hidden; }
+  .theme-seg {
+    background: var(--flaeche); border: none; border-right: 1px solid var(--rand-stark);
+    color: var(--text-muted); padding: 6px 10px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .theme-seg:last-child { border-right: none; }
+  .theme-seg svg { width: 14px; height: 14px; flex: none; display: block; }
+  .theme-seg:hover { color: var(--link); }
+  .theme-seg[aria-pressed="true"] { background: var(--primaer); color: var(--primaer-kontrast); }
+
+  /* Zeile 2: Unterstrich-Reiter (aktiv = dunkler Text + 2px Akzentlinie, geht in die
+     Haarlinie unter .kopf über). Bleibt .seiten-nav/button[data-seite] -- Routing-JS
+     unveraendert, nur die Optik wechselt von Link-Stil auf Unterstrich-Tabs. */
+  .seiten-nav { display: flex; gap: 28px; align-items: baseline; flex-wrap: wrap; }
+  .seiten-nav button {
+    all: unset; cursor: pointer; position: relative; font-family: var(--font-ui);
+    font-size: 0.92rem; font-weight: 500; color: var(--text-muted); padding: 10px 2px 12px;
+  }
+  .seiten-nav button:hover { color: var(--text); }
+  .seiten-nav button[aria-pressed="true"] { color: var(--text); font-weight: 700; }
+  .seiten-nav button[aria-pressed="true"]::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: var(--primaer); border-radius: 1px 1px 0 0;
+  }
+  .seiten-nav button:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 3px; }
+
+  /* ---------- Inhalt: linksbündig, feste Mittelspalte 1040px (Mockup A) ---------- */
+  .inhalt { display: flex; align-items: flex-start; gap: 24px; padding: 24px 0 24px 24px; }
+  .seitenleiste {
+    flex: 0 0 300px; background: var(--flaeche); border: 1px solid var(--rand);
+    border-radius: 6px; padding: 16px;
+    /* Sticky unter dem Kopf (Feedback 2026-08-26, Zusatzpunkt 4) -- gilt fuer ALLE
+       .seitenleiste-Instanzen (Start-Filter, Subagent-Ruecklink); .rail-spalte
+       (Verlauf auf der Sitzungsseite) ueberschreibt Hoehe/Aufbau weiter unten spezifischer. */
+    position: sticky; top: calc(var(--kopf-hoehe) + var(--kopf-rand));
+    /* Feedback 2026-08-27: Unterkante MUSS mit .start-mitte/.detail-mitte uebereinstimmen --
+       deren untere Konstante ist -24px (= padding-bottom von .inhalt), nicht -12px. height statt
+       max-height, damit die Seitenleiste IMMER exakt bis dorthin reicht (vorher blieb bei kurzem
+       Filterinhalt eine 12px-Luecke zur Mittelspalte stehen). Innenscroll bleibt ueber
+       overflow-y:auto erhalten, falls der Filterinhalt selbst hoeher waere. */
+    height: calc(100vh - var(--kopf-hoehe) - var(--kopf-rand) - 24px);
+    overflow-y: auto;
+  }
+  .hauptspalte { flex: 0 0 1040px; width: 1040px; min-width: 0; }
+  /* Reserve-Spalte fuer Seiten ohne Seitenleiste (Auftrag 2026-08-28, C7-Nachtrag): leer,
+     ohne Rahmen/Hintergrund/Text -- haelt .hauptspalte an derselben left/width-Position wie auf
+     Start (gleiche Breite 300px wie .seitenleiste), Puffer fuer spaetere Elemente. Betrifft
+     Fehlerbilder & Entscheide, Produkt, Einstellungen (Start/Sitzung/Subagent haben bereits eine
+     echte .seitenleiste). */
+  .leerspalte { flex: 0 0 300px; }
+
+  /* Sidebar-Sektionen mit eigenem Innenscroll statt EINEM Aussenscroll (Auftrag 2026-08-27,
+     Nachtrag C): #filter-panel bekommt overflow:hidden -- ueberschreibt NUR fuer diese eine
+     .seitenleiste-Instanz die overflow-y:auto-Basisregel oben (Selektor-Spezifitaet per ID);
+     .rail-spalte (Sitzungsdetail) und die leere Subagent-Leiste behalten ihren normalen
+     Aussenscroll unveraendert. Hoehe/Position/Block-Fluss bleiben SONST unangetastet (kein
+     display:flex hier -- ein Versuch mit verschachteltem Flex ist gescheitert: Chromiums
+     automatische Mindesthoehe eines verschachtelten Flex-Containers rechnet das min-height
+     eines ENKELKINDS nicht ein, die Zuletzt-aktiv-Liste lief dadurch 97px in die Quellen-Gruppe
+     hinein, Messlauf 2026-08-27). AKTIV/ZULETZT-AKTIV/KONTEXT/"Weitere" bekommen hier nur
+     overflow-y:auto + Scrollbalken-Optik -- die tatsaechliche Hoehe setzt
+     start.js:passeSeitenleisteHoeheAn() per style.height (gleiches Muster wie
+     tabellen.js:passeTabelleHoeheAn(), live gemessen statt geraten). */
+  #filter-panel { overflow: hidden; }
+  #filter-panel #projekt-liste-aktiv,
+  #filter-panel > .filter-gruppe-kontext > ul,
+  #filter-panel .weitere-liste-scroll { overflow-y: auto; }
+  /* "Weitere (A-Z)": normalerweise eingeklappt (Details zu), kann aber sehr lang werden -- fester
+     Deckel statt die Aussenhoehe von #filter-panel zu sprengen (bewusst NICHT JS-berechnet, das
+     waere fuer eine Opt-in-Ausklapp-Liste unverhaeltnismaessig). */
+  #filter-panel .weitere-liste-scroll { max-height: 160px; }
+  /* Duenner Scrollbalken wie die Tabelle (.tabelle-koerper/.tabelle-kopf) -- INNERHALB der
+     Sektion, nicht auf der ganzen Seitenleiste (dieselben Werte, eigener Regelblock statt die
+     bestehende .seitenleiste-Scrollbar-Regel oben umzubauen). */
+  #filter-panel #projekt-liste-aktiv,
+  #filter-panel > .filter-gruppe-kontext > ul, #filter-panel .weitere-liste-scroll {
+    scrollbar-width: thin; scrollbar-color: var(--rand-stark) transparent;
+  }
+  #filter-panel #projekt-liste-aktiv::-webkit-scrollbar,
+  #filter-panel > .filter-gruppe-kontext > ul::-webkit-scrollbar, #filter-panel .weitere-liste-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  #filter-panel #projekt-liste-aktiv::-webkit-scrollbar-track,
+  #filter-panel > .filter-gruppe-kontext > ul::-webkit-scrollbar-track, #filter-panel .weitere-liste-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #filter-panel #projekt-liste-aktiv::-webkit-scrollbar-thumb,
+  #filter-panel > .filter-gruppe-kontext > ul::-webkit-scrollbar-thumb, #filter-panel .weitere-liste-scroll::-webkit-scrollbar-thumb {
+    background: var(--rand-stark); border-radius: 4px;
+  }
+  /* Luft zwischen rechtsbuendiger Projektanzahl (.count, margin-left:auto) und dem Scrollbalken
+     (Korrektur 2026-08-27): ohne Padding sass die Zahl direkt am Balken. scrollbar-gutter:
+     stable reserviert die Balkenspur IMMER (auch ohne sichtbaren Balken, z. B. Kontext im
+     Normalfall) -- der Abstand bleibt dadurch gleich, ob gerade gescrollt wird oder nicht. */
+  #filter-panel #projekt-liste-aktiv, #filter-panel .weitere-liste-scroll,
+  #filter-panel > .filter-gruppe-kontext > ul {
+    padding-right: 20px; scrollbar-gutter: stable;
+  }
+
+  /* Start-Mittelspalte: feste Anordnung in Viewport-Hoehe (Feedback 2026-08-26 "Startseite",
+     Korrektur 2026-08-26 spaeter am Tag). NUR die Ueberschrift "Querschnitt" + die Kacheln
+     (.abschnitt, direktes Kind) bleiben fest -- ALLES darunter (Fehler-Panel + Sitzungen) liegt
+     in EINEM gemeinsamen Scrollbereich (.start-scroll), der per Mausrad OHNE sichtbaren Balken
+     scrollt (Balken gibt es nur INNERHALB der beiden Tabellen, siehe .tabelle-gitter unten).
+     Vorher lag das Fehler-Panel fix zwischen Kacheln und Tabelle und die Sitzungstabelle
+     fuellte die Resthoehe -- beide Annahmen sind mit der Korrektur aufgegeben.
+     Gleiches Grundmuster wie .seitenleiste/.rail-spalte: sticky unter dem Kopf, Hoehe =
+     Viewport minus Kopf/Rand. min-height haelt bei sehr niedrigen Fenstern eine sinnvolle
+     Mindesthoehe -- greift die min-height, ragt die Spalte ueber den Viewport hinaus und die
+     Seite scrollt wieder normal (bewusst, Vorgabe "ausser Viewport kleiner als
+     Mindesthoehe"). */
+  .start-mitte {
+    position: sticky; top: calc(var(--kopf-hoehe) + var(--kopf-rand));
+    /* Untere Konstante = padding-bottom von .inhalt (24px), NICHT die 12px von .seitenleiste
+       (Seite darf auf Start gar nicht scrollen, siehe Kommentar oben -- 12px liessen hier noch
+       einen Rest-Scroll von 12px stehen, gemessen per docH>winH). */
+    height: calc(100vh - var(--kopf-hoehe) - var(--kopf-rand) - 24px);
+    min-height: 420px;
+    display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  }
+  .start-mitte > .abschnitt { flex: none; }
+  /* Gemeinsamer Scrollbereich Fehler-Panel + Sitzungen (Korrektur 2026-08-26): Mausrad
+     scrollt, kein sichtbarer eigener Balken -- scrollbar-width:none/::-webkit-scrollbar
+     {display:none} blenden nur den BALKEN aus, das Scrollen selbst bleibt aktiv. */
+  .start-scroll {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; -ms-overflow-style: none;
+    /* overflow-anchor:none (wie schon auf body, Feedback 2026-08-26 Punkt 2): jeder
+       Scroll-Container hat SEIN EIGENES Scroll-Anchoring, die body-Regel wirkt nicht hier
+       herein. Ohne das sprang die Ansicht bei Erstladung ungewollt auf ~800px, weil das
+       progressive Nachrender (Fehlerbild-/Sitzungstabelle) den Anker verschiebt (live
+       gemessen: scrollTop=800 direkt nach dem Laden, sollte 0 sein). */
+    overflow-anchor: none;
+  }
+  .start-scroll::-webkit-scrollbar { display: none; }
+
+  /* ---------- Tabellen-Scroll-Standard (Entscheid 2026-08-26) ----------
+     Muster aus Beispielprojekt uebernommen (10_AI_and_Digitalization_Projects/Beispielprojekt,
+     src/beispielprojekt/ui_basis.py, Klassen "sec-gitter"/"sec-kopf"/"sec-koerper"): Kopf (nur
+     thead) und Koerper (nur tbody) sind ZWEI Tabellen mit IDENTISCHER colgroup statt einer
+     Tabelle mit sticky-thead. Eine sticky-thead-Tabelle bewegt sich bei horizontalem Overflow
+     als Ganzes -- die Kopfzelle "Nr." verschwand dadurch beim Scrollen (Abnahme
+     2026-08-26); eine eigenstaendige, nicht scrollende Kopf-Tabelle kann das nicht mehr.
+     scrollbar-gutter:stable auf BEIDEN Haelften haelt die Spalten deckungsgleich, auch wenn
+     nur der Koerper wirklich einen Balken hat -- nur aktiv, wenn tatsaechlich gescrollt wird
+     (Klasse .tg-scrollt, von JS je nach Zeilenzahl gesetzt), sonst reserviert eine kurze Liste
+     unnoetig eine leere Rinne. Feste Zeilenhoehe statt JS-Hoehenmessung (fruehere
+     setzeFehlerpanelHoehe()) -- max-height je Tabelle = 10 * Zeilenhoehe rundet automatisch auf
+     ganze Zeilen; unter 10 Zeilen bleibt die natuerliche (kleinere) Hoehe stehen.
+     Ausnahme #sitzungen-koerper (Feedback 2026-08-27): die feste 10-Zeilen-Grenze ist dort
+     durch passeTabelleHoeheAn() (tabellen.js) ersetzt -- die Tabelle fuellt die Restflaeche bis
+     zur Unterkante von .start-mitte, wieder nur in ganzen Zeilen. Die max-height unten bleibt
+     dort nur als Fallback stehen, bis JS sie inline ueberschreibt. */
+  .tabelle-gitter { border: 1px solid var(--rand); border-radius: 6px; overflow: hidden; background: var(--flaeche); }
+  /* Kopf-Container traegt selbst die Kopf-Hintergrundfarbe + untere Trennlinie (Feedback
+     2026-08-26 Punkt 1): scrollbar-gutter:stable reserviert rechts einen Streifen NEBEN der
+     Tabelle -- der zeigte bisher die Karten-Flaeche (weiss) durch, weil nur die th-Zellen
+     eingefaerbt waren. Hintergrund + Trennlinie auf dem Container selbst laeuft bis zum
+     rechten Kartenrand durch, auch ueber den Gutter-Streifen hinweg. */
+  .tabelle-kopf { overflow: hidden; background: var(--flaeche-alt); border-bottom: 1px solid var(--rand); }
+  .tabelle-koerper { overflow-y: auto; overflow-x: hidden; scroll-snap-type: y mandatory; overflow-anchor: none; }
+  .tabelle-koerper tbody > tr { scroll-snap-align: start; scroll-snap-stop: always; }
+  .tabelle-gitter.tg-scrollt .tabelle-kopf, .tabelle-gitter.tg-scrollt .tabelle-koerper { scrollbar-gutter: stable; }
+  .tabelle-gitter.tg-scrollt .tabelle-koerper { overflow-y: scroll; }
+  .tabelle-gitter table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 0; background: var(--flaeche); }
+  .tabelle-koerper td {
+    box-sizing: border-box; vertical-align: middle; border-bottom: 1px solid var(--rand);
+    font-size: 0.86rem; white-space: nowrap;
+  }
+  .tabelle-koerper tbody tr:last-child td { border-bottom: none; }
+  .tabelle-koerper td.num { font-family: var(--font-mono); text-align: right; }
+  /* Projekt-Zelle (Sitzungen-Tabelle) darf nie in die Quelle-Spalte laufen (Befund
+     2026-08-27, Nr. 535 "adapter-review · unzugeordnet"): white-space:nowrap erbt sie schon von
+     .tabelle-koerper td, hier nur zusaetzlich clippen -- title (start.js) traegt den vollen Text. */
+  .tabelle-koerper td.projekt-zelle { overflow: hidden; text-overflow: ellipsis; }
+  .tg-zeile-40 td { height: 40px; padding: 0 12px; }
+  .tg-zeile-48 td { height: 48px; padding: 4px 12px; }
+  #fehlerbilder-koerper { max-height: 480px; }
+  /* Fallback vor dem ersten JS-Layout-Pass (passeTabelleHoeheAn() ueberschreibt das inline,
+     Feedback 2026-08-27) -- ohne das waere die Tabelle beim allerersten Rendern kurz
+     unbegrenzt hoch. */
+  #sitzungen-koerper { max-height: 480px; }
+  #subagenten-koerper { max-height: 400px; }
+  .tabelle-kopf, .tabelle-koerper { scrollbar-width: thin; scrollbar-color: var(--rand-stark) transparent; }
+  .tabelle-koerper::-webkit-scrollbar { width: 8px; height: 8px; }
+  .tabelle-koerper::-webkit-scrollbar-track { background: transparent; }
+  .tabelle-koerper::-webkit-scrollbar-thumb { background: var(--rand-stark); border-radius: 4px; }
+  .tabelle-koerper::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* ---------- Sitzungsdetail-/Subagent-Seite: gleiches Fix-oben/Scroll-unten-Muster wie
+     .start-mitte (Entscheid 2026-08-26, Mockup B) -- .detail-kopf-fix (Kompaktzeile +
+     Kennzahlen) bleibt stehen, NUR .detail-scroll scrollt, wieder OHNE sichtbaren eigenen
+     Balken (Balken nur im .tabelle-koerper der Subagenten-Tabelle). */
+  .detail-mitte {
+    position: sticky; top: calc(var(--kopf-hoehe) + var(--kopf-rand));
+    height: calc(100vh - var(--kopf-hoehe) - var(--kopf-rand) - 24px);
+    min-height: 420px;
+    display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  }
+  .detail-kopf-fix { flex: none; }
+  .detail-scroll {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: none; -ms-overflow-style: none;
+    /* overflow-anchor:none -- gleicher Grund/gleicher Befund wie .start-scroll oben: eigenes
+       Scroll-Anchoring je Container, progressives Nachrender (renderBefunde/renderVierAugen/
+       renderSubagenten) sprang sonst beim Erstladen auf scrollTop~800 statt 0. */
+    overflow-anchor: none;
+    /* KEIN scroll-snap mehr (Befund 2026-08-27, Block 3): mit `proximity` + Karten-
+       `scroll-snap-align` rastete der Container nach jedem Nachladen (Kennzahl-Karten,
+       Befunde) auf die naechste Kartenoberkante ein -- die Detailseite stand beim Oeffnen
+       bereits 25..748 px nach unten versetzt. */
+  }
+  .detail-scroll::-webkit-scrollbar { display: none; }
+
+  /* Duenne, dezente Scrollleisten fuer die verbleibenden intern scrollenden Bereiche
+     (Zusatz 2026-08-26): .seitenleiste (Start-Filter, Verlauf-Karte) und .verlauf-scroll
+     behalten einen sichtbaren Balken (kein Mausrad-ohne-Balken-Bereich). */
+  .seitenleiste, .verlauf-scroll { scrollbar-width: thin; scrollbar-color: var(--rand-stark) transparent; }
+  .seitenleiste::-webkit-scrollbar, .verlauf-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .seitenleiste::-webkit-scrollbar-track, .verlauf-scroll::-webkit-scrollbar-track { background: transparent; }
+  .seitenleiste::-webkit-scrollbar-thumb, .verlauf-scroll::-webkit-scrollbar-thumb { background: var(--rand-stark); border-radius: 4px; }
+  .seitenleiste::-webkit-scrollbar-thumb:hover, .verlauf-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  /* ---------- Primärknopf (genau einer je Seite) ---------- */
+  .primaer-btn {
+    background: var(--primaer); color: var(--primaer-kontrast); border: none;
+    border-radius: 5px; padding: 9px 18px; font-family: var(--font-ui); font-weight: 600;
+    font-size: 0.88rem; cursor: pointer;
+  }
+  .primaer-btn:hover { filter: brightness(1.08); }
+  .primaer-btn:disabled { opacity: 0.6; cursor: default; filter: none; }
+
+  /* ---------- Hilfe-Icon (Erklärzeile, aufklappbar) ---------- */
+  .hilfe-btn {
+    width: 18px; height: 18px; border-radius: 50%; flex: none;
+    background: var(--flaeche); border: 1px solid var(--rand-stark); color: var(--text-muted);
+    font-family: var(--font-ui); font-size: 0.68rem; font-weight: 700; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center; padding: 0; cursor: pointer;
+  }
+  .hilfe-btn:hover { border-color: var(--link); color: var(--link); }
+  /* Nr.-Kopfzelle der Sitzungstabelle: Sortierknopf + th-hilfe nebeneinander statt
+     untereinander -- .th-sort ist sonst 100% breit (siehe unten), das sprengt die 60px-Spalte
+     in zwei Zeilen (Feedback 2026-08-26, Punkt 4). */
+  .th-nr { display: flex; align-items: center; gap: 2px; padding: 10px 6px; }
+  .th-nr .th-sort { width: auto; flex: 1 1 auto; min-width: 0; }
+  .hilfe-text {
+    flex-basis: 100%; margin: 4px 0 0; font-size: 0.78rem; font-weight: 400; text-transform: none;
+    letter-spacing: normal; color: var(--text-muted); background: var(--flaeche-alt);
+    border-left: 3px solid var(--rand-stark); border-radius: 4px; padding: 8px 10px; line-height: 1.5;
+  }
+  .hilfe-text[hidden] { display: none; }
+  /* Befund-Karten (Mockup K2, Ergaenzung 2026-08-27): Bedeutung + "was tun" als zwei
+     eigene Absaetze statt eines einzelnen <p> -- Rand-Reset, sonst doppelter Abstand
+     zwischen dem Container-Padding und dem Browser-Default-Absatzabstand. */
+  .hilfe-text p { margin: 0 0 6px; }
+  .hilfe-text p:last-child { margin-bottom: 0; }
+
+  /* ---------- Seite 1: Projekte/Filter -- Layout selbst kommt jetzt von .inhalt/.seitenleiste ---------- */
+  .filter-gruppe + .filter-gruppe { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--rand); }
+  /* PRODUKT-Block (Layout-Nachlese 2026-08-28 Punkt 3): knapperer Trenner als die uebrigen
+     Bloecke -- nur EINE Zeile Inhalt, der volle Trenner (20+16px) kostete bei 1366x768
+     zusaetzliche Hoehe, die selbst mit ZULETZT AKTIV und KONTEXT auf 0px nicht mehr ausging
+     (Playwright-Messung: ~50px Rest-Ueberlauf trotz beider Listen auf 0). Spart 14px, ohne den
+     Block optisch zu verschmelzen (Trennlinie bleibt). */
+  .filter-gruppe.filter-gruppe-produkt { margin-top: 12px; padding-top: 10px; }
+  .filter-gruppe ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .filter-zeile { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; color: var(--text-body); }
+  /* [hidden] allein reicht nicht -- .filter-zeile setzt display:flex mit derselben Spezifitaet
+     wie die UA-Regel [hidden]{display:none}, Autoren-CSS gewinnt sonst den Kaskaden-Vorrang
+     (gleiches Muster wie .dropdown-menu[hidden] weiter unten). Befund C12: `q-unbekannt-zeile`
+     und die neuen `u-*-zeile`-Reihen blieben ohne diese Regel sichtbar, obwohl `hidden` gesetzt war. */
+  .filter-zeile[hidden] { display: none; }
+  .filter-zeile input[type="checkbox"] { accent-color: var(--primaer); width: 15px; height: 15px; flex: none; }
+  .filter-zeile .count { margin-left: auto; font-family: var(--font-mono); color: var(--text-muted); font-size: 0.8rem; }
+  /* Quellen-Filter als 2-Spalten-Raster statt Zeilen (Auftrag 2026-08-27, Block "KI-
+     PLATTFORMEN" seit Layout-Nachlese 2026-08-28 Punkt 3 eigener .filter-gruppe): Claude|Codex,
+     Ollama|OpenRouter, Requesty|Unbekannt -- reihenfolge-treu aus dem bestehenden DOM (kein
+     Umsortieren noetig). Produkt ist seit Punkt 3 ein eigener LETZTER Block (.filter-gruppe ul
+     ohne diese Klasse, siehe index.html) statt einer siebten Zeile hier. */
+  .filter-gruppe ul.quellen-liste { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; row-gap: 8px; }
+  /* Kontext-Filter (Layout-Nachlese 2026-08-28 Punkt 2, Auftrag): SPALTENWEISE gefuellt statt
+     zeilenweise -- links Arbeit/Bewertung/Review/Test untereinander, rechts Voice (und
+     kuenftige). grid-auto-flow:column + grid-template-rows:repeat(4,auto) erzwingt genau 4
+     Zeilen je Spalte, bevor ein 5. Eintrag die zweite Spalte weiterfuellt (Platz fuer bis zu 8
+     Kontexte in 2 Spalten, ohne dass eine implizite 3. Spalte entsteht) -- Reihenfolge im DOM
+     bleibt alphabetisch (index.html), das allein ergibt schon die gewuenschte Lesereihenfolge.
+     Vorher (Nachtrag Requesty 2026-08-28) war das ein zeilenweises 2-Spalten-Raster; Korrektur
+     ersetzt das hier ersatzlos. start.js:passeSeitenleisteHoeheAn() misst die neue (um eine Zeile
+     groessere) Naturhoehe weiterhin live, kein fester Wert hier. */
+  .filter-gruppe ul.kontext-liste {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(4, auto);
+    grid-auto-flow: column; column-gap: 10px; row-gap: 8px;
+  }
+
+  /* ---------- C14 Persona (Entscheid 2026-08-28) ----------
+     Orb-Miniaturen (Drahtgitter-Kugel, Kampagnen-Optik, s. index.html #orb-mesh) fuer die neue
+     Filtergruppe PERSONAS (gleiches 2-Spalten-Raster wie .quellen-liste, darum hier im selben
+     Scope) und die neue Tabellenspalte "Persona" (format.js:personaZelleHtml). Farbe/Aura kommen
+     ueber currentColor aus der jeweiligen mini-orb-Modifierklasse, wortgleich aus dem Mockup
+     uebernommen (Hex-Werte, keine neuen Tokens noetig). */
+  .mini-orb { display: inline-block; flex: none; overflow: visible; }
+  .mini-orb--vico { color: #2f8fd8; filter: drop-shadow(0 0 3px rgba(47, 143, 216, .55)); }
+  .mini-orb--vica { color: #b07fe0; filter: drop-shadow(0 0 3px rgba(176, 127, 224, .55)); }
+  .mini-orb--cura { color: #4fd09a; filter: drop-shadow(0 0 3px rgba(79, 208, 154, .55)); }
+  /* Selektor mit ul wie .quellen-liste -- die blosse Klasse verlor sonst gegen die
+     spezifischere Bestands-Flexregel der Filterlisten (Live-Messung 2026-08-28). */
+  .filter-gruppe ul.personas-liste { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; row-gap: 8px; }
+  .personas-liste .filter-zeile label { display: flex; align-items: center; gap: 7px; }
+  .personas-liste .mini-orb { width: 14px; height: 14px; }
+  .personas-liste .puffer-zelle { visibility: hidden; }
+  /* Tabellen-Zelle: Mini-Orb (16px) + Name daneben, optionaler gedaempfter Kanal-Zusatz.
+     padding-right haelt den Kanal-Zusatz vom rechten Tabellenrand fern (Korrektur). */
+  .persona-zelle { display: flex; align-items: center; gap: 7px; min-width: 0; padding-right: 8px; }
+  .persona-zelle .mini-orb { width: 16px; height: 16px; }
+  .persona-zelle .name { font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; }
+  .persona-zelle .kanal { color: var(--text-muted); font-weight: 400; font-size: 0.78rem; }
+
+  .projekt-suche {
+    width: 100%; box-sizing: border-box; border: 1px solid var(--rand-stark); border-radius: 5px;
+    padding: 6px 10px; font-family: var(--font-ui); font-size: 0.82rem; background: var(--flaeche);
+    color: var(--text-body); margin-top: 4px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px; background: var(--flaeche-alt);
+    border: 1px solid var(--rand-stark); border-radius: 20px; padding: 3px 6px 3px 10px;
+    font-size: 0.78rem; color: var(--text-body);
+  }
+  .alle-keine-zeile { display: flex; gap: 8px; align-items: center; margin: 2px 0 4px; }
+  .link-btn {
+    background: none; border: none; padding: 0; color: var(--link); font-size: 0.78rem;
+    cursor: pointer; text-decoration: underline; font-family: var(--font-ui);
+  }
+  .projekt-liste { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .weitere-projekte { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rand); }
+  .weitere-projekte summary {
+    cursor: pointer; font-size: 0.74rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  .weitere-projekte summary:hover { color: var(--link); }
+
+  /* Querschnitt-Kacheln -- auto-fit statt fixer 4 Spalten: die Unzugeordnet-Kachel
+     erscheint additiv nur wenn N>0 und darf die Reihe nicht krumm aufreissen.
+     minmax 200px->175px (Nachtrag 2026-08-27 Punkt 6, live verifiziert): mit der fuenften
+     Kachel "Pruefung offen" (Phase 2 E, C7) brauchten 5 Spalten a 200px + 4*16px Gap 1064px --
+     mehr als die 1040px-Mittelspalte, darum brach die fuenfte Kachel in eine zweite Reihe. Bei
+     175px passen 5 Kacheln bequem (939px); 6 (mit Unzugeordnet) duerfen weiterhin umbrechen,
+     das ist der gewollte "additiv"-Fall aus dem Kommentar oben. */
+  .querschnitt-grid {
+    /* 150px statt 175px: sechs Kacheln (inkl. "Unzugeordnet") bleiben ab 1600px in EINER Reihe,
+       sonst kostet die zweite Reihe drei Tabellenzeilen (Sichtung 2026-08-27). */
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;
+  }
+  .kachel-alert.st-neutral { --kachel-kante: var(--rand-stark); }
+  .kachel-alert.st-neutral .kachel-status { color: var(--text-muted); }
+  /* Nachtrag 2026-08-27 Punkt 9b (Sichtung): Kachel kompakter -- Innenabstand + Zeilenabstand
+     ein paar Pixel enger, Ziel mind. eine Sitzungszeile mehr sichtbar (Label ist seit diesem
+     Nachtrag ausserdem einzeilig, siehe start.js kachelHtml). */
+  .kachel-alert {
+    text-align: left; width: 100%; background: var(--flaeche); border: 1px solid var(--rand);
+    border-left: 3px solid var(--kachel-kante, var(--rand-stark)); border-radius: 6px;
+    padding: 10px 14px 9px; cursor: pointer; font-family: var(--font-ui);
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .kachel-alert:hover { border-color: var(--link); border-left-color: var(--kachel-kante, var(--link)); }
+  .kachel-alert .kachel-zahl { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 700; color: var(--text); line-height: 1; }
+  .kachel-alert .kachel-label { font-size: 0.82rem; color: var(--text-body); }
+  .kachel-alert .kachel-status { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+  .kachel-alert .kachel-hinweis { display: none; font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+  .kachel-alert[aria-expanded="true"] .kachel-hinweis { display: block; }
+  .kachel-alert.st-fehler { --kachel-kante: var(--fehler); }
+  .kachel-alert.st-fehler .kachel-status { color: var(--fehler); }
+  .kachel-alert.st-warnung { --kachel-kante: var(--warnung); }
+  .kachel-alert.st-warnung .kachel-status { color: var(--warnung); }
+  .kachel-alert.st-kritisch { --kachel-kante: var(--kritisch); background: var(--kritisch-bg); }
+  .kachel-alert.st-kritisch .kachel-status { color: var(--kritisch); }
+
+  /* Tabelle */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--rand); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 760px; background: var(--flaeche); }
+  /* Feste Spaltenbreiten (Mockup A, Entscheid 2026-08-26): Entscheide-Tabelle behaelt ihre
+     Breite unabhaengig vom Zeitraum (Tag/7/30/Zeitraum…). Sitzungsliste + Fehler-Panel bekommen
+     table-layout:fixed jetzt generisch ueber .tabelle-gitter table (Tabellen-Scroll-Standard,
+     Korrektur 2026-08-26). */
+  #tabelle-entscheide { table-layout: fixed; min-width: 0; }
+  thead th {
+    text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-muted); padding: 10px 12px; background: var(--flaeche-alt); border-bottom: 1px solid var(--rand);
+    white-space: nowrap;
+  }
+  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--rand); font-size: 0.86rem; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td.num, thead th.num { font-family: var(--font-mono); text-align: right; }
+  td.status-zelle { white-space: normal; min-width: 180px; }
+  /* Fehlerbild-Spalte darf umbrechen statt in die Nachbarspalte zu laufen (Feedback
+     2026-08-26, Zusatzpunkt 5): Werkzeug · Fehlerart (Hash) kann laenger als die 220px-Spalte
+     sein -- overflow-wrap:anywhere bricht auch mitten im Hash, keine Ellipsis/Ueberlappung. */
+  td.fehlerbild-zelle { white-space: normal; overflow-wrap: anywhere; }
+  /* Umbruch auf hoechstens zwei Zeilen, Rest mit Ellipsis (Maintainer 2026-08-26); wiederverwendbar */
+  .zwei-zeilen { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  tr.zeile-klickbar { position: relative; }
+  tr.zeile-klickbar:hover { background: var(--flaeche-alt); }
+  a.zeilen-link { color: var(--link); font-family: var(--font-mono); font-weight: 600; text-decoration: none; }
+  a.zeilen-link:hover { text-decoration: underline; }
+  a.zeilen-link::after { content: ""; position: absolute; inset: 0; }
+  /* Treffer-Spalte nur im Fehler-Drilldown sichtbar (Sichtabnahme B.2). Kopf hervorgehoben
+     (fett + Textfarbe statt gedämpft), solange die Spalte aktiv ist (Entscheid 2026-08-26,
+     Auftrag 2 -- "Sitzungen"-Knopf sichtbar machen). */
+  .spalte-treffer { display: none; }
+  body.zeigt-treffer .spalte-treffer { display: table-cell; }
+  /* col-Element: table-cell waere ungueltig -- eigene, spezifischere Regel (fixed-layout-
+     Tabelle #tabelle-sitzungen reserviert die Spaltenbreite sonst permanent, Entscheid
+     2026-08-26 Mockup A). */
+  body.zeigt-treffer col.spalte-treffer { display: table-column; }
+  body.zeigt-treffer thead th.spalte-treffer { color: var(--text); font-weight: 800; }
+
+  /* Zweistufiger Fehler-Drilldown (Umbau 2026-08-26): Aktionen je Fehlerbild-Zeile. */
+  /* td bleibt table-cell (display:flex auf der Zelle warf sie aus der Zeile, Maintainer 2026-08-26) */
+  td.fp-aktionen-zelle { white-space: nowrap; vertical-align: middle; }
+  .fp-aktionen { display: flex; gap: 6px; }
+  .fp-formular-zelle { white-space: normal; }
+  tr[hidden] { display: none; }
+  /* Ausgewählte Panel-Zeile bleibt nach "Sitzungen"-Klick markiert (Entscheid 2026-08-26,
+     Auftrag 2). */
+  #fehlerbilder-body tr[aria-selected="true"] td { background: var(--flaeche-alt); }
+  #fehlerbilder-body tr[aria-selected="true"] td:first-child { box-shadow: inset 3px 0 0 var(--primaer); }
+
+  .th-sort {
+    all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center;
+    gap: 4px; width: 100%;
+  }
+  th.num .th-sort { justify-content: flex-end; }
+  .th-sort:hover { color: var(--link); }
+  .th-sort:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 3px; }
+  .sort-arrow { font-size: 0.62rem; color: var(--text-muted); }
+  th[aria-sort]:not([aria-sort="none"]) .sort-arrow { color: var(--link); }
+
+  .status-pille {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 600;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .status-pille.st-erfolg { background: var(--erfolg-bg); color: var(--erfolg); }
+  .status-pille.st-warnung { background: var(--warnung-bg); color: var(--warnung); }
+  .status-pille.st-fehler { background: var(--fehler-bg); color: var(--fehler); }
+  .status-pille.st-neutral { background: var(--flaeche-alt); color: var(--text-muted); }
+  .produkt-status { color: var(--text-muted); font-size: 0.82rem; }
+
+  /* Einheitliche Breite (Feedback 2026-08-26 Punkt 2, geschaerft 2026-08-27 mit OpenRouter):
+     eine min-width haette bei "OpenRouter"/"Unbekannt" weiter wachsen und die kuerzeren Chips
+     (Claude/Codex/Ollama/Produkt) hinter sich lassen koennen -- feste Breite (border-box, per
+     Playwright gegen den breitesten Chip "OpenRouter" gemessen) haelt ALLE Quelle-Chips exakt
+     gleich breit, Text bleibt zentriert. */
+  .quelle-chip {
+    display: inline-block; box-sizing: border-box; width: 88px; text-align: center; font-size: 0.74rem;
+    font-weight: 600; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--rand-stark);
+    color: var(--text-body);
+  }
+  /* Je Anbieter eingefärbt (Feedback 2026-08-26, Zusatzpunkt 4) -- Rand+Text farbig, heller
+     Flächenton, keine gefüllte Fläche. Ollama bekommt bewusst KEINE Modifier-Klasse (bleibt
+     Schwarz-Weiß wie die .quelle-chip-Basisfarben), Unbekannt bleibt ebenfalls neutral. */
+  .quelle-chip.quelle-claude { border-color: var(--quelle-claude); color: var(--quelle-claude); background: var(--quelle-claude-bg); }
+  .quelle-chip.quelle-codex { border-color: var(--quelle-codex); color: var(--quelle-codex); background: var(--quelle-codex-bg); }
+  .quelle-chip.quelle-openrouter { border-color: var(--quelle-openrouter); color: var(--quelle-openrouter); background: var(--quelle-openrouter-bg); }
+  .quelle-chip.quelle-requesty { border-color: var(--quelle-requesty); color: var(--quelle-requesty); background: var(--quelle-requesty-bg); }
+  .quelle-chip.quelle-produkt { border-color: var(--quelle-produkt); color: var(--quelle-produkt); background: var(--quelle-produkt-bg); }
+  /* Unbekannt = Warnfarbe der Kacheln, nicht Grau (Korrektur 2026-08-26 zu Zusatzpunkt 4) --
+     dasselbe Token wie die Kachel "Kosten-Ausreißer"/"Erfassungslücke" (.st-warnung). */
+  .quelle-chip.quelle-unbekannt { border-color: var(--warnung); color: var(--warnung); background: var(--warnung-bg); }
+
+  /* Achse Umgebung (C12, Maintainer 2026-08-28 12:45): Kuerzel-Chip rechts vom Projektnamen, NUR bei
+     Abweichung von 'entwicklung' (die zeigt keinen Chip, s. format.js:umgebungChipHtml) --
+     inline in der Fliesstextzelle statt einer eigenen Spalte (Maintainer: "alles gestaucht genug").
+     Bestehende Status-Tokens statt neuer Farben: Abnahme = Warnfarbe (wie der Unbekannt-Chip),
+     Betrieb = Kritisch-Farbe (hoechste Tragweite einer Umgebung). */
+  .umgebung-chip {
+    display: inline-flex; align-items: center; font-size: 0.68rem; font-weight: 600;
+    padding: 1px 6px; border-radius: 3px; vertical-align: middle;
+  }
+  .umgebung-chip.umgebung-abnahme { background: var(--warnung-bg); color: var(--warnung); }
+  .umgebung-chip.umgebung-betrieb { background: var(--kritisch-bg); color: var(--kritisch); }
+
+  /* ---------- Seite 2 ---------- */
+  .breadcrumb { font-size: 0.86rem; color: var(--text-muted); }
+  .breadcrumb a { color: var(--link); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .aktuell { color: var(--text); font-family: var(--font-mono); }
+
+  .zurueck-link { display: inline-block; font-size: 0.82rem; margin-bottom: 12px; color: var(--link); }
+
+  /* Kompaktzeile (Mockup B, Entscheid 2026-08-26): Zurueck-Link + Breadcrumb + Aktionen in
+     EINER Zeile statt bisher zwei ("Leerraum ueber den Kacheln minimieren"). Scoped statt die
+     Basisregeln zu aendern -- .zurueck-link/.breadcrumb werden auch alleinstehend gebraucht
+     (Subagent-Seite: Rueck-Link in der Seitenleiste, Breadcrumb ohne Aktionen). */
+  .kompaktzeile { display: flex; align-items: center; gap: 16px; margin: 0 0 10px; min-width: 0; }
+  .kompaktzeile .breadcrumb { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Aktionen-Dropdown (Mockup B, Entscheid 2026-08-26): einziger Auftritt der
+     Sitzungs-Aktionen -- ein Ghost-Knopf statt der frueheren zwei ("Pruefen (Vier Augen)" im
+     Kopf UND "Pruefung starten/Abbrechen" nach Klick). Enthaelt bewusst NUR "Zweitmeinung
+     einholen"/"Erneut pruefen" -- keine Platzhalter (Maintainer: kein Bedarf). */
+  .aktionen-wrap { position: relative; flex: none; }
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 6px); right: 0; min-width: 210px; z-index: 25;
+    background: var(--flaeche); border: 1px solid var(--rand); border-radius: 6px; padding: 6px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.14); display: flex; flex-direction: column; gap: 1px;
+  }
+  :root[data-theme="dark"] .dropdown-menu { box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dropdown-menu { box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+  }
+  .dropdown-menu button {
+    all: unset; cursor: pointer; padding: 8px 10px; border-radius: 4px; font-size: 0.84rem;
+    color: var(--text-body); font-family: var(--font-ui);
+  }
+  .dropdown-menu button:hover { background: var(--flaeche-alt); color: var(--link); }
+  .dropdown-menu button:disabled { color: var(--text-muted); cursor: default; }
+  .dropdown-menu button:disabled:hover { background: none; color: var(--text-muted); }
+  /* [hidden] allein reicht nicht -- .dropdown-menu setzt display:flex mit derselben
+     Spezifitaet wie die UA-Regel [hidden]{display:none}, Autoren-CSS gewinnt sonst den
+     Kaskaden-Vorrang (gleiches Muster wie .hilfe-text[hidden]/.popover[hidden] im Bestand). */
+  .dropdown-menu[hidden] { display: none; }
+
+  /* Rueckfrage-Dialog (Mockup B): zentriert UEBER der Mittelspalte, Hintergrund nur DORT
+     abgedunkelt -- Seitenleiste (Verlauf) und Freiraum bleiben hell/bedienbar. */
+  .dialog-overlay {
+    position: absolute; inset: 0; z-index: 40; border-radius: 6px;
+    background: rgba(15, 20, 26, .42);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .dialog-karte {
+    width: 440px; max-width: 100%; background: var(--flaeche); border: 1px solid var(--rand);
+    border-radius: 8px; padding: 20px 22px; display: flex; flex-direction: column; gap: 12px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.3);
+  }
+  .dialog-karte .detail { font-size: 0.84rem; color: var(--text-body); margin: 0; }
+  .dialog-karte .zeile { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+  /* Gleicher Grund wie .dropdown-menu[hidden] oben -- display:flex braucht eine explizite
+     [hidden]-Regel, sonst gewinnt sie gegen die UA-Regel. */
+  .dialog-overlay[hidden] { display: none; }
+
+  /* Kennzahlen-Leiste — 6 Kacheln je Zeile. margin oben 0 statt 20px (Mockup B, Entscheid
+     2026-08-26 "Leerraum ueber den Kacheln minimieren") -- die Kompaktzeile daneben traegt
+     ihren eigenen Bodenabstand bereits selbst. */
+  .kennzahlen-leiste {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px;
+    background: var(--rand); border: 1px solid var(--rand); border-radius: 6px; overflow: hidden;
+    margin: 0 0 14px;
+  }
+  .kz-kachel { background: var(--flaeche); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; min-height: 74px; justify-content: center; }
+  .kz-kachel .kz-zahl { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--text); line-height: 1.1; }
+  .kz-kachel .kz-zahl.text { font-size: 0.98rem; }
+  .kz-kachel .kz-label { font-size: 0.7rem; color: var(--text-muted); line-height: 1.3; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .kz-kachel .kz-nebenwert { font-size: 0.7rem; color: var(--text-muted); }
+
+  /* Nachtrag 2026-08-27 Layout-Reste R1 (#sitzung/137, 1850x966, Auftrag "Stempelzeile bottom
+     <= 960"): margin-top explizit statt UA-Default (~12px) -- kollabierte vorher mit dem
+     Default-Absatzabstand von #kennzahlen-fussnote und trug allein ~24px zur Ueberlaenge bei.
+     gap 14px->10px (Spaltenabstand der sieben Stempel-Paare) hielt den Inhalt bisher 3px ueber
+     der verfuegbaren Breite -> Umbruch in eine zweite Zeile (54.9px statt 33.5px Hoehe, live
+     gemessen). */
+  .stempelzeile {
+    font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-muted);
+    border: 1px dashed var(--rand-stark); border-radius: 5px; padding: 6px 12px; margin: 4px 0 24px;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 3px 10px;
+  }
+  .stempel-label {
+    font-family: var(--font-ui); font-weight: 700; text-transform: uppercase; font-size: 0.68rem;
+    letter-spacing: 0.06em; color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px;
+  }
+
+  /* Verlauf-Zeitleiste — Signatur-Element: vertikale Schiene mit Zeitmarken.
+     .rail-spalte sitzt zusammen mit .seitenleiste auf der Sitzungsdetail-Seite (gleiches
+     Raster wie Start, Entscheid 2026-08-26) -- .seitenleiste liefert Breite/Optik,
+     .rail-spalte nur noch die Zeitschiene/Scroll-Feinheiten.
+     Sticky + interner Scroll (Feedback 2026-08-26): .rail-spalte selbst ist sticky unter
+     der Kopfzeile (Kopf ~110px + Rand) mit fester Hoehe = Viewport minus Kopf; NUR
+     .verlauf-scroll (ul + "Alle anzeigen"-Knopf) scrollt intern, Ueberschrift + Fussnote
+     bleiben stehen. Die Schiene (::before) haengt jetzt an .zeitleiste (auto-Hoehe = volle
+     Listenlaenge) statt an .rail-spalte (feste/geklemmte Hoehe) -- genau das war der frueher
+     behobene Bug (Auftrag A.2, Kommentar unten): eine absolut positionierte Linie, deren
+     Hoehe an einer Box mit overflow:auto/limitierter Hoehe haengt, endet mitten in der Liste,
+     weil ihre top/bottom-Offsets sich auf die SICHTBARE Box beziehen, nicht auf die
+     Scroll-Inhaltshoehe. An .zeitleiste (kein overflow, waechst mit dem Inhalt) tritt der
+     Bug nicht auf, auch wenn ihr Elternelement scrollt. */
+  .rail-spalte {
+    position: sticky; top: calc(var(--kopf-hoehe) + var(--kopf-rand));
+    /* -24px statt -12px (Feedback 2026-08-27): .rail-spalte lag 12px zu tief gegenueber
+       .detail-mitte (dieselbe -24px-Konstante wie oben bei .seitenleiste/.start-mitte) --
+       beide Seitenleisten schliessen jetzt auf jeder Seite buendig mit ihrer Mittelspalte ab. */
+    height: calc(100vh - var(--kopf-hoehe) - var(--kopf-rand) - 24px);
+    min-width: 0; padding-left: 44px; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .rail-spalte .abschnitt { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+  /* margin-left -44/padding-left 44: holt die von .rail-spalte reservierte Icon-Spalte IN die
+     eigene Box von .verlauf-scroll (sonst clippt overflow-x:hidden die negativ positionierten
+     .zl-punkt-Kreise -- ihre Box begaenne sonst genau an der Stelle, wo die Icons ueberstehen). */
+  .verlauf-scroll {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    margin-left: -44px; padding-left: 44px;
+  }
+  .zeitleiste { position: relative; list-style: none; margin: 0 0 4px; padding: 0; }
+  .zeitleiste::before {
+    content: ""; position: absolute; left: -21px; top: 6px; bottom: 8px; width: 2px; background: var(--rand-stark);
+  }
+  .verlauf-alle-btn { margin: 6px 0 0; }
+  /* Sortier-Umschalter neben "Verlauf" (Feedback 2026-08-27): h2 ist bereits flex (Zeile
+     150), margin-left:auto haengt den Knopf ganz nach rechts wie den Sortierpfeil im
+     Tabellenkopf. Kleiner als .ghost-btn-Standard, weil er nur einen Glyphen traegt. */
+  .verlauf-sort-btn { margin-left: auto; padding: 3px 8px; font-size: 0.78rem; line-height: 1; }
+  .rail-fussnote { flex: none; }
+  @media (max-width: 768px) {
+    .rail-spalte { position: static; height: auto; overflow: visible; }
+    .verlauf-scroll { overflow: visible; }
+  }
+  .zl-eintrag { position: relative; padding-bottom: 18px; }
+  .zl-eintrag:last-child { padding-bottom: 0; }
+  .zl-eintrag.zl-hervorgehoben {
+    background: var(--warnung-bg); border-radius: 4px; box-shadow: 0 0 0 4px var(--warnung-bg);
+    transition: background-color .2s ease;
+  }
+  .zl-punkt {
+    position: absolute; left: -30px; top: 1px; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--flaeche); border: 2px solid var(--rand-stark); display: flex; align-items: center;
+    justify-content: center; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-body);
+  }
+  .zl-marker {
+    display: inline-block; margin-left: 6px; font-size: 0.68rem; font-weight: 700;
+    color: var(--warnung); background: var(--warnung-bg); border-radius: 4px; padding: 1px 6px;
+    white-space: normal;
+  }
+  .zl-eintrag.st-fehler .zl-punkt { border-color: var(--fehler); color: var(--fehler); }
+  .zl-eintrag.st-warnung .zl-punkt { border-color: var(--warnung); color: var(--warnung); }
+  .zl-eintrag.st-erfolg .zl-punkt { border-color: var(--erfolg); color: var(--erfolg); }
+  .zl-zeit { font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-muted); }
+  .zl-text { font-size: 0.86rem; color: var(--text-body); }
+  .zl-eintrag.st-fehler .zl-text { color: var(--fehler); font-weight: 600; }
+  .zl-eintrag.st-warnung .zl-text { color: var(--warnung); font-weight: 600; }
+  .rail-fussnote { margin: 10px 0 0; padding-left: 2px; }
+
+  /* padding NICHT hier (frueher 8px 10px) -- .tg-zeile-40 setzt die feste Zeilenhoehe der
+     Subagenten-Tabelle (Tabellen-Scroll-Standard, Korrektur 2026-08-26), gleiche
+     Spezifitaet + spaeter im Dokument wuerde sie sonst wieder ueberschreiben. */
+  .subagent-tabelle th, .subagent-tabelle td { font-size: 0.8rem; }
+  .subagent-tabelle th { padding: 10px 12px; }
+  /* Auftrag-Spalte (Feedback 2026-08-26, Punkt 3): einzeilig mit Ellipsis, voller Text im
+     nativen title-Tooltip (Zelle selbst traegt title=, siehe renderSubagenten). */
+  .auftrag-zelle {
+    max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* Spalten-Hilfe in Tabellenkoepfen (Abnahme 2026-08-26, Auftrag D.10): natives `title`
+     statt .tooltip-wrap/.tooltip-text -- die Tabelle steckt in .table-wrap mit
+     overflow-x:auto, das schneidet nach CSS-Spec automatisch auch overflow-y mit (der
+     Popup-Text von .tooltip-text wurde darum abgeschnitten). Ein natives title-Tooltip
+     rendert ausserhalb der Seiten-Stapelreihenfolge und kann nicht beschnitten werden. */
+  .th-hilfe {
+    display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px;
+    border-radius: 50%; border: 1px solid var(--rand-stark); color: var(--text-muted);
+    font-size: 0.62rem; font-weight: 700; margin-left: 4px; cursor: help; flex: none;
+  }
+  .beleg-ok { color: var(--erfolg); font-weight: 700; }
+  .beleg-warn { color: var(--warnung); font-weight: 700; }
+
+  /* Befunde gruppiert nach Regel (Variante C, Entscheid 2026-08-27 -- Mockup
+     _mock-varianten.html Abschnitt C, Masse 1:1 uebernommen): eine Karte (.g) je Regel statt je
+     Einzeltreffer -- tilgt die Wiederholung desselben Titels/Satzes bei mehreren Treffern
+     derselben Regel. Kopf (.gk) traegt Titel + Zaehler + Roh-Signatur + Kurz-Bedeutung, darunter
+     je Treffer eine Zeile (.tr): Wert · Position · Aktion. */
+  .gr { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .gr .g {
+    border-radius: 5px; border-left: 3px solid var(--rand-stark); background: var(--flaeche-alt);
+    overflow: hidden;
+  }
+  .gr .g.st-warnung { border-left-color: var(--warnung); background: var(--warnung-bg); }
+  .gr .g.st-fehler { border-left-color: var(--fehler); background: var(--fehler-bg); }
+  /* Karte ganz gedaempft nur, wenn ALLE Treffer erledigt sind -- eine einzelne erledigte
+     Treffer-Zeile daempft nur sich selbst, siehe .gr .tr.st-erledigt (Soll-Abgrenzung). */
+  .gr .g.st-erledigt { opacity: 0.72; }
+  .gr .gk { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 14px 6px; }
+  .gr .gk .kern { font-weight: 700; font-size: 0.86rem; color: var(--text); }
+  .gr .g.st-warnung .gk .kern { color: var(--warnung); }
+  .gr .g.st-fehler .gk .kern { color: var(--fehler); }
+  .gr .g.st-erledigt .gk .kern { color: var(--text-muted); }
+  .gr .gk .anzahl {
+    font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-muted); background: var(--flaeche);
+    border: 1px solid var(--rand-stark); border-radius: 10px; padding: 0 8px; line-height: 18px; flex: none;
+  }
+  .gr .gk .befund-roh, .gr .gk .hilfe-btn { flex: none; }
+  /* Kurz-Bedeutung rechts im Kopf, Ellipsis statt Umbruch, max. 520px (Mockup-Mass). */
+  .gr .gk .kurz {
+    font-size: 0.78rem; color: var(--text-muted); margin-left: auto; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 520px;
+  }
+  .gr .g .hilfe-text { margin: 0 14px 8px; }
+  .gr .tr {
+    display: grid; grid-template-columns: 140px 1fr auto; align-items: center; column-gap: 14px;
+    /* Wert-Spalte 140px (Mock 110): 'N Aufrufe > 120 s' (latency:timeout) lief sonst in die Position (Abnahme 2026-08-27). */
+    padding: 5px 14px 5px 26px; border-top: 1px solid rgba(0, 0, 0, 0.06); font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.55);
+  }
+  /* Treffer-Zeile selbst gedaempft (nicht die ganze Karte) -- eine Karte kann offene und
+     erledigte Treffer mischen (Soll-Abgrenzung gegen .gr .g.st-erledigt oben). */
+  .gr .tr.st-erledigt { opacity: 0.72; }
+  .gr .tr .detail, .gr .tr .erledigt-formular-slot:not(:empty) { grid-column: 1 / -1; }
+  .gr .tr .detail { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
+  .gr .tr .befund-wert { font-family: var(--font-mono); color: var(--text); text-align: right; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .gr .tr .befund-wert small { font-family: var(--font-ui); font-weight: 400; color: var(--text-muted); font-size: 0.7rem; margin-left: 4px; }
+  .gr .tr .befund-pos { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gr .tr .befund-pos .befund-position-btn { font-size: 0.76rem; }
+  .gr .tr .befund-pos .caption { color: var(--text-muted); font-size: 0.76rem; }
+  .gr .tr .befund-aktion { display: flex; align-items: center; gap: 6px; justify-self: end; }
+  /* Kompakter Erledigt…-Knopf (Live-Messung, Ergaenzung 2026-08-27): der normale .ghost-btn
+     (padding 6px 12px) trieb die Zeile hoeher als noetig. */
+  .gr .tr .erledigt-btn { padding: 4px 10px; font-size: 0.78rem; line-height: 1.2; }
+
+  /* Kennzahlen-Kacheln (Ergaenzung 2026-08-27, Mockup Rev 3
+     "sitzungsbeleg-kacheln-final.html"): gleiche Karten-Optik wie die Befunde (.gr/.g/.gk
+     oben), zusaetzlich Kennzahl-Paare (.paar/.kz) und ein Spurenband je Runde (.band/.spur)
+     fuer Kosten/Fehler/Subagenten/Dauer. ?-Hilfe wiederverwendet .hilfe-btn/.hilfe-text (oben). */
+  /* Kachel-Karten sind informativ, nicht Schweregrad-codiert wie die Befunde -- immer blauer
+     Rand statt des neutralen Grau von .gr .g ohne st-warnung/st-fehler (Mockup-Vorgabe). */
+  .gr .g.kz-karte { border-left-color: var(--primaer); }
+  /* Abstand zwischen den drei Kennzahlen-Karten selbst 8px->6px (Layout-Reste R1) -- ueber die
+     ID gescopt, NICHT ueber .gr (das teilt sich #kennzahlen-karten mit #befunde-liste). */
+  #kennzahlen-karten.gr { gap: 6px; }
+  .gr .gk .hero { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--text); }
+  /* Nachtrag 2026-08-27 Punkt 10 (Sichtung #sitzung/245, 1850x966): Kopfzeile der drei
+     Kennzahlen-Karten (Verbrauch/Ablauf/Delegation) etwas enger als die Befund-Karten -- NUR
+     hier ueber .kz-karte gescopt, damit die Befunde-Liste unveraendert bleibt. */
+  /* Layout-Reste R1 (2026-08-27): nochmals 2px enger je Kante (Punkt-10-Nachtrag reichte allein
+     nicht aus, Stempelzeile lag noch ~87px unter der Viewport-Kante, live gemessen) -- weiterhin
+     NUR ueber .kz-karte gescopt. */
+  .gr .g.kz-karte .gk { padding: 4px 14px 3px; }
+  .gr .band { padding: 1px 14px 2px; }
+  .gr .paar {
+    display: grid; grid-template-columns: 1fr 1fr; border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .gr .kz { padding: 3px 14px 3px 26px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .gr .kz + .kz { border-left: 1px solid rgba(0, 0, 0, 0.06); }
+  .gr .kz .l { font-size: 0.8rem; color: var(--text-body); }
+  .gr .kz-k { display: flex; align-items: center; gap: 6px; }
+  .gr .kz-w { display: flex; align-items: center; gap: 8px; }
+  .gr .kz .w { font-family: var(--font-mono); font-weight: 700; color: var(--text); font-size: 0.84rem; white-space: nowrap; }
+  .gr .kz .w small { font-family: var(--font-ui); font-weight: 400; color: var(--text-muted); font-size: 0.7rem; }
+  /* Mehrere Modelle untereinander (Ergaenzung 1, gegenueber dem Mockup): Label bleibt oben,
+     je Modell eine eigene Zeile statt einer " · "-Aufzaehlung -- bei nur einem Modell optisch
+     einzeilig, weil dann nur eine .w-Zeile entsteht. */
+  .gr .kz.kz-modelle { align-items: flex-start; }
+  .gr .kz.kz-modelle .kz-w { flex-direction: column; align-items: flex-end; gap: 2px; }
+
+  .spur { display: grid; grid-template-columns: 110px 1fr; align-items: end; gap: 10px; margin-bottom: 2px; }
+  .spur-l { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 2px; }
+  /* Responsiv (Vorgabe): viewBox traegt die feste Koordinatenbasis (830 Einheiten), die
+     tatsaechliche Breite ergibt sich aus der Spalte (1fr) -- kein festes width/height im SVG. */
+  .spur svg { display: block; width: 100%; height: auto; }
+  .achse { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); margin-left: 120px; border-top: 1px solid var(--rand-stark); padding-top: 2px; }
+  .legende { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.7rem; color: var(--text-muted); margin: 2px 0 1px 120px; }
+  .legende span { display: inline-flex; align-items: center; gap: 5px; }
+  .lg { display: inline-block; width: 14px; height: 10px; background: var(--primaer); border-radius: 1px; }
+  .lg-rot { background: var(--fehler); }
+  .lg-dash { height: 0; border-top: 1px dashed var(--text-muted); background: none; }
+  .lg-tick { width: 2px; height: 10px; background: var(--fehler); }
+  .lg-blau { background: var(--primaer); }
+  .lg-vline { width: 5px; height: 12px; background: none; border-left: 1.2px solid var(--text); border-right: 1.2px solid var(--text); }
+  .lg-line { height: 0; border-top: 1.5px solid var(--primaer); background: none; }
+  .lg-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--fehler); }
+  .lg-ring { width: 8px; height: 8px; border-radius: 50%; background: none; border: 1.5px solid var(--fehler); }
+
+  .delta { font-size: 0.7rem; font-weight: 700; border-radius: 3px; padding: 0 5px; white-space: nowrap; }
+  .delta.d-hoch { color: var(--fehler); background: var(--fehler-bg); }
+  .delta.d-tief { color: var(--erfolg); background: var(--erfolg-bg); }
+  .delta.d-neutral { color: var(--text-muted); background: var(--flaeche-alt); }
+  @media (max-width: 768px) {
+    .achse, .legende { margin-left: 0; }
+    .spur { grid-template-columns: 1fr; }
+  }
+
+  .befund-badge {
+    display: inline-block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em; color: var(--text-muted); background: var(--flaeche); border: 1px solid var(--rand-stark);
+    border-radius: 4px; padding: 2px 7px; white-space: nowrap; flex: none;
+  }
+  /* Rückfall-Badge (Entscheid 2026-08-26): rot, Klartext statt Großbuchstaben-Label. */
+  .befund-badge-rueckfall {
+    text-transform: none; color: var(--fehler); background: var(--fehler-bg); border-color: var(--fehler);
+  }
+  .erledigt-btn { flex: none; }
+  .erledigt-formular {
+    margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--rand-stark);
+    display: flex; flex-direction: column; gap: 6px; width: 100%;
+  }
+  .erledigt-formular label { font-size: 0.76rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 3px; }
+  .erledigt-formular select, .erledigt-formular input[type="text"] {
+    font-family: var(--font-ui); font-size: 0.82rem; padding: 5px 8px; border: 1px solid var(--rand-stark);
+    border-radius: 5px; background: var(--flaeche); color: var(--text-body);
+  }
+  .erledigt-formular .zeile { display: flex; gap: 8px; justify-content: flex-end; margin-top: 2px; }
+  .erledigt-fehler { color: var(--fehler); font-size: 0.76rem; }
+  /* C11 Verankerung (Entscheid 2026-08-28): Unterfelder erben label/select/input bereits
+     von .erledigt-formular oben -- hier nur Abstand fuer den Block + die [hidden]-Umschaltung
+     (native display:none, keine neuen Werte). */
+  .erledigt-formular .verankerung-felder { display: flex; flex-direction: column; gap: 6px; }
+  .verankerung-chip {
+    display: inline-block; font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
+    color: var(--text-muted); background: var(--flaeche); border: 1px solid var(--rand-stark);
+    border-radius: 4px; padding: 1px 7px; white-space: nowrap;
+  }
+
+  .vier-augen-tabelle { table-layout: fixed; }
+  .vier-augen-tabelle th, .vier-augen-tabelle td {
+    font-size: 0.8rem; padding: 8px 10px; vertical-align: top; white-space: normal; word-break: break-word;
+  }
+  .vier-augen-tabelle td:last-child { min-width: 150px; }
+  .urteil { display: flex; gap: 6px; align-items: flex-start; }
+  .urteil .mark { font-weight: 700; flex: none; }
+  .urteil .mark.ok { color: var(--erfolg); }
+  .urteil .mark.nein { color: var(--fehler); }
+  .ergebnis-zelle { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .dissens-zeile td { background: var(--kritisch-bg); }
+  .dissens-label {
+    display: inline-block; font-weight: 700; color: var(--kritisch-text-auf-flaeche); background: var(--kritisch);
+    padding: 3px 10px; border-radius: 4px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .05em;
+  }
+  /* Dissens-Chip wird ein Knopf (Abnahme 2026-08-26, Auftrag C.8) -- .dissens-label
+     bleibt die gemeinsame Optik fuer beide Faelle (offener Dissens als Knopf, entschiedener
+     Dissens als reine Anzeige). */
+  button.dissens-label { border: none; cursor: pointer; font-family: var(--font-ui); }
+  button.dissens-label:hover { filter: brightness(1.1); }
+  .vieraugen-entscheid-vermerk { display: block; margin-top: 4px; font-weight: 400; text-transform: none; }
+
+  .baum {
+    font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-body); line-height: 1.85;
+    background: var(--flaeche-alt); border: 1px solid var(--rand); border-radius: 6px; padding: 12px 14px;
+    white-space: pre-wrap; word-break: break-word; overflow-x: auto;
+  }
+  .baum .ok { color: var(--erfolg); }
+  .baum .warn { color: var(--warnung); }
+
+  .hinweisleiste-unten {
+    margin-top: 32px; padding-top: 14px; border-top: 1px solid var(--rand); text-align: center;
+    color: var(--text-muted); font-size: 0.78rem;
+  }
+
+  /* Zeitraum-Popover — einzige Stelle mit Schatten (schwebend) */
+  .zeitraum-wrap { position: relative; display: inline-flex; }
+  .popover {
+    position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; width: 260px;
+    background: var(--flaeche); border: 1px solid var(--rand); border-radius: 6px; padding: 14px;
+    display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 28px rgba(0,0,0,.14);
+  }
+  :root[data-theme="dark"] .popover { box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .popover { box-shadow: 0 10px 28px rgba(0,0,0,.5); }
+  }
+  .popover[hidden] { display: none; }
+  .popover-felder { display: flex; flex-direction: column; gap: 8px; }
+  .popover-felder label { display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: var(--text-muted); }
+  .popover-felder input[type="date"] {
+    font-family: var(--font-ui); font-size: 0.84rem; padding: 6px 8px; border: 1px solid var(--rand-stark);
+    border-radius: 5px; background: var(--flaeche); color: var(--text-body);
+  }
+  .popover-schnellwahl { display: flex; flex-wrap: wrap; gap: 6px; }
+  .popover-schnellwahl button { font-size: 0.76rem; padding: 5px 9px; }
+  .popover-footer { display: flex; justify-content: flex-end; }
+
+  @media (max-width: 768px) {
+    .kopf-inner { padding: 12px 14px 0; }
+    .inhalt { flex-direction: column; padding: 12px 14px 24px; gap: 16px; }
+    .seitenleiste, .hauptspalte { flex: 1 1 auto; width: auto; }
+    /* .leerspalte hat im gestapelten Layout keine Funktion (flex-basis wuerde bei
+       flex-direction:column zu 300px Hoehe statt Breite) -- komplett raus. */
+    .leerspalte { display: none; }
+    /* Gestapeltes Layout (Feedback 2026-08-26, Zusatzpunkt 4): sticky/interner Scroll ist ein
+       Desktop-3-Spalten-Feature -- im gestapelten Layout scrollt die Seitenleiste normal mit. */
+    /* height statt max-height im Reset (Feedback 2026-08-27, Folgeaenderung): .seitenleiste
+       setzt jetzt height statt max-height (s. o.) -- max-height:none haette die feste height
+       nicht aufgehoben, die Seitenleiste waere im gestapelten Layout ueber Viewport-Hoehe
+       geklemmt geblieben. Deckt auch .rail-spalte ab (traegt beide Klassen). */
+    .seitenleiste { position: static; height: auto; overflow: visible; }
+    .start-mitte, .detail-mitte { position: static; height: auto; min-height: 0; overflow: visible; }
+    .start-scroll, .detail-scroll { overflow: visible; }
+    .tabelle-koerper { overflow: visible; max-height: none !important; }
+    #chat { display: none; }
+    .querschnitt-grid { grid-template-columns: 1fr 1fr; }
+    .kennzahlen-leiste { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    .zeile-1 { flex-direction: column; align-items: stretch; }
+    .titel-block { margin-right: 0; }
+  }
+  @media (max-width: 480px) {
+    .querschnitt-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .kachel-alert, .segmented button, .ghost-btn, .icon-btn, .outline-btn, .primaer-btn, tr.zeile-klickbar {
+      transition: border-color .12s ease, background-color .12s ease, filter .12s ease;
+    }
+  }
+
+  /* ---------- Stufe 3 — additive Ergaenzungen ---------- */
+  .filter-banner {
+    display: flex; align-items: center; gap: 10px; background: var(--flaeche-alt);
+    border: 2px solid var(--primaer); border-radius: 6px; padding: 8px 12px; margin: 0 0 12px;
+    font-size: 0.82rem; font-weight: 600;
+  }
+  .filter-banner[hidden] { display: none; }
+  .platzhalter-karte {
+    background: var(--flaeche); border: 1px solid var(--rand); border-radius: 6px; padding: 24px;
+  }
+  .ladehinweis { color: var(--text-muted); font-size: 0.84rem; padding: 12px 2px; }
+  .fehlerhinweis { color: var(--fehler); font-size: 0.84rem; padding: 12px 2px; }
+  .subagent-details { margin-top: 20px; }
+  .abschnitt + .abschnitt { margin-top: 24px; }
+
+  /* Chat ("Besprechung", Phase 1 D -- CONTRACTS.md C4/C5/C7)
+     Eine Instanz fuer alle Seiten (wie .kopf) statt je Seite ein eigener .freiraum -- rechte
+     Spalte bleibt IMMER sichtbar (Entscheid 4/6): position:fixed statt Teil des
+     .inhalt-Flexflusses; jede Seite reserviert den Platz einfach dadurch, dass ihre .inhalt
+     keinen dritten Fuell-Container mehr hat (der ehemalige .freiraum ist entfernt).
+     Anker ist die LINKE Kante (wie .inhalt { padding-left: 24px }), NICHT "right: 0" -- sonst
+     wandert die Spalte bei CSS-zoom (static/js/skalierung.js) aus dem 1880px-Raster heraus.
+     Raster (Entwurfsbreite 1880px, C7): 24 (Rand) + 300 (Seitenleiste) + 24 (Luecke) + 1040
+     (Mitte) + 24 (Luecke) + 440 (Chat) + 28 (Rand) = 1880px gesamt. */
+  :root {
+    --chat-links: calc(24px + 300px + 24px + 1040px + 24px); /* = 1412px */
+    --chat-breite: 440px;
+  }
+  #chat {
+    position: fixed; left: var(--chat-links); width: var(--chat-breite);
+    top: calc(var(--kopf-hoehe) + var(--kopf-rand));
+    height: calc(100vh - var(--kopf-hoehe) - var(--kopf-rand) - 24px);
+    display: flex; flex-direction: column; z-index: 15; overflow: hidden;
+    background: var(--flaeche); border: 1px solid var(--rand); border-radius: 6px;
+  }
+  .chat-kopf {
+    flex: none; padding: 12px 14px 10px; border-bottom: 1px solid var(--rand);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .chat-titel { font-size: 0.95rem; }
+  .chat-anbieter-zeile { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .chat-modell-select {
+    font-family: var(--font-ui); font-size: 0.78rem; padding: 5px 6px; border: 1px solid var(--rand-stark);
+    border-radius: 5px; background: var(--flaeche); color: var(--text-body); max-width: 100%;
+    flex: 1 1 auto; min-width: 0;
+  }
+  .chat-datenschutz { margin: 0; font-size: 0.74rem; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .chat-datenschutz.ok { color: var(--erfolg); }
+  .chat-datenschutz.geschuetzt { color: var(--fehler); }
+  .chat-datenschutz .punkt { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; display: inline-block; }
+  .chat-kontext { margin: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+  .chat-kontext .chip { padding: 2px 9px; font-size: 0.72rem; }
+  .chat-kontext:empty { display: none; }
+
+  /* Sichtbarer Scrollbalken (Layout-Nachlese 2026-08-28 Punkt 4, Auftrag): bei langen
+     Antworten sah der Maintainer nicht, dass oben noch Text steht -- gleiche Balken-Optik wie
+     .seitenleiste/.verlauf-scroll (dünn, gedämpfte Randfarbe). scrollbar-gutter:stable
+     reserviert die Balkenspur IMMER, auch ohne sichtbaren Balken -- ohne das sprangen die
+     Bubbles (.bubble max-width:82%) schmaler, sobald eine lange Antwort erstmals einen Balken
+     erzeugte (Beobachtung "Bubbles duerfen nicht schmaler springen").
+     Tieferer Befund beim Nachmessen (Playwright, echter Overflow-Fall): `justify-content:
+     flex-end` machte den Container bei Overflow UNSCROLLBAR -- Chromium haengt ueberlaufenden
+     Inhalt eines end-ausgerichteten Flex-Containers an dessen START-Kante an, `scrollHeight`
+     blieb dabei gleich `clientHeight` und `scrollTop` liess sich auf KEINEN Wert setzen (blieb
+     immer 0), die ersten Bubbles waren also nicht nur unsichtbar, sondern gar nicht erreichbar
+     -- vermutlich die eigentliche Ursache von Maintainer's Beobachtung, nicht nur der fehlende Balken.
+     Standard-Idiom dagegen: `justify-content: flex-start` (normale, scrollbare Ueberlauf-Kante)
+     + `margin-top: auto` auf das ERSTE Kind -- der Auto-Rand saugt bei WENIG Inhalt den Rest
+     nach oben (Bubbles kleben weiter unten), kollabiert aber auf 0, sobald der Inhalt die Box
+     sprengt (Auto-Raender nehmen nie negativen Raum an) -- dann verhaelt sich der Container wie
+     eine normale, von oben nach unten lesbare Scroll-Liste. Live verifiziert: scrollTop=0 zeigt
+     wieder die erste Bubble, scrollHeight > clientHeight bei Ueberlauf, Kurzfall bleibt unten. */
+  .chat-verlauf {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-gutter: stable;
+    display: flex; flex-direction: column; justify-content: flex-start; gap: 10px; padding: 12px 14px;
+    scrollbar-width: thin; scrollbar-color: var(--rand-stark) transparent;
+  }
+  .chat-verlauf > *:first-child { margin-top: auto; }
+  .chat-verlauf::-webkit-scrollbar { width: 8px; }
+  .chat-verlauf::-webkit-scrollbar-track { background: transparent; }
+  .chat-verlauf::-webkit-scrollbar-thumb { background: var(--rand-stark); border-radius: 4px; }
+  .chat-verlauf::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  /* Bubbles im Dashboard-Branding (C7): Nutzer rechts in Primaerfarbe, Assistent links neutral --
+     dieselben Klassennamen wie eine kuenftige zweite Bubble-Nutzung (nicht chat-spezifisch benannt). */
+  .bubble { max-width: 82%; padding: 8px 12px; border-radius: 9px; font-size: 0.82rem; line-height: 1.45; }
+  .bubble .zeit { display: block; font-size: 0.66rem; color: var(--text-muted); margin-top: 4px; font-family: var(--font-mono); }
+  /* Markdown-Rendering in Assistent-Bubbles (Auftrag 2026-08-28, s. markdown.js): Absaetze ohne
+     Aussenabstand (die Bubble selbst traegt schon padding), Codeblock/Inline-Code mit der
+     bestehenden Flaechen-Variable statt eines neuen Farbwerts. */
+  .bubble p { margin: 0 0 6px; }
+  .bubble p:last-of-type { margin-bottom: 0; }
+  .bubble ul, .bubble ol { margin: 0 0 6px; padding-left: 20px; }
+  .bubble ul:last-child, .bubble ol:last-child { margin-bottom: 0; }
+  .bubble li { margin: 2px 0; }
+  .bubble code { background: var(--flaeche-alt); border-radius: 3px; padding: 1px 5px; font-family: var(--font-mono); font-size: 0.92em; }
+  .bubble pre { background: var(--flaeche-alt); border-radius: 5px; padding: 8px 10px; margin: 0 0 6px; overflow-x: auto; }
+  .bubble pre:last-child { margin-bottom: 0; }
+  .bubble pre code { background: none; padding: 0; font-size: 0.82em; }
+  .bubble.nutzer { align-self: flex-end; background: var(--primaer); color: var(--primaer-kontrast); border-bottom-right-radius: 2px; }
+  .bubble.nutzer .zeit { color: rgba(255, 255, 255, 0.75); }
+  .bubble.assistent { align-self: flex-start; background: var(--flaeche-alt); color: var(--text); border-bottom-left-radius: 2px; }
+  .bubble.fehler { align-self: flex-start; background: var(--fehler-bg); color: var(--fehler); border-bottom-left-radius: 2px; }
+  /* Anbieterfarbe je Assistent-Bubble (Nachtrag Phase 2 OpenRouter, Auftrag Punkt 5): dezenter
+     Rand + heller Anbieter-Ton statt des neutralen --flaeche-alt, gleiche Farbpaare wie
+     .quelle-chip. Ollama bekommt bewusst KEINE Regel (bleibt neutral, wie die Quelle-Badges). */
+  .bubble.assistent.anbieter-claude { background: var(--quelle-claude-bg); border: 1px solid var(--quelle-claude); }
+  .bubble.assistent.anbieter-claude .chat-sender { color: var(--quelle-claude); }
+  /* Ollama = Schwarz-Weiss wie der Quelle-Chip (Maintainer 2026-08-27 20:40): Flaeche statt --flaeche-alt,
+     die im Dark-Theme blaeulich wirkt; Rand wie .quelle-chip. */
+  .bubble.assistent.anbieter-ollama { background: var(--flaeche); color: var(--text-body); border: 1px solid var(--rand-stark); }
+  .bubble.assistent.anbieter-ollama .chat-sender { color: var(--text-body); }
+  .bubble.assistent.anbieter-openrouter { background: var(--quelle-openrouter-bg); border: 1px solid var(--quelle-openrouter); }
+  .bubble.assistent.anbieter-openrouter .chat-sender { color: var(--quelle-openrouter); }
+  .bubble.assistent.anbieter-requesty { background: var(--quelle-requesty-bg); border: 1px solid var(--quelle-requesty); }
+  .bubble.assistent.anbieter-requesty .chat-sender { color: var(--quelle-requesty); }
+  /* Absender-Zeile (R4, Test 2026-08-27 18:15): welches Modell geantwortet hat, WhatsApp-
+     Muster -- nur Assistent-Bubbles (Nutzer-Bubbles bleiben ohne, Vorgabe). Wird erst beim
+     SSE-"ende"-Ereignis eingefuegt (chat.js fuegeSenderZeileEin), deshalb kein eigener Platz im
+     initialen bubble.innerHTML noetig. */
+  .bubble.assistent .chat-sender {
+    display: block; font-size: 0.68rem; font-weight: 700; color: var(--text-muted);
+    font-family: var(--font-mono); margin-bottom: 3px;
+  }
+  /* "Fix umsetzen" (Nachtrag 2026-08-27 Punkt 7): nur sichtbar, wenn die Antwort einen
+     FIX-VORSCHLAG traegt -- oeffnet ein sichtbares Fix-Fenster, setzt nichts hier selbst um. */
+  .chat-fix-zeile { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .chat-fix-zeile .chat-fix-btn { padding: 4px 11px; font-size: 0.76rem; }
+  .chat-fix-zeile .chat-fix-status { color: var(--text-muted); }
+
+  .chat-eingabe {
+    flex: none; display: flex; gap: 6px; align-items: center; padding: 10px 12px;
+    border-top: 1px solid var(--rand); background: var(--flaeche);
+  }
+  .chat-eingabe input {
+    flex: 1 1 auto; min-width: 0; border: 1px solid var(--rand-stark); border-radius: 5px;
+    padding: 8px 10px; font-family: var(--font-ui); font-size: 0.82rem; background: var(--flaeche);
+    color: var(--text-body);
+  }
+  .chat-eingabe input::placeholder { color: var(--text-muted); }
+  .chat-eingabe .primaer-btn { padding: 7px 14px; font-size: 0.82rem; flex: none; }
+  .chat-eingabe input:disabled, .chat-eingabe button:disabled { opacity: 0.6; }
+
+  /* ---- Phase 2 G ---- */
+  /* Seite "Fehlerbilder & Entscheide" (vormals Querschnitt): Tabelle selbst nutzt die
+     bestehenden generischen Regeln (.tabelle-gitter/.tabelle-kopf/.tabelle-koerper, table/th/td)
+     -- hier nur die aufklappbare Detailzeile je Fehlerbild. `.pille`/`.pille[data-status]` baut
+     E in Block E; diese Datei nutzt nur die Klasse, definiert sie nicht neu (Bericht: am
+     Abgabezeitpunkt von G noch nicht vorhanden, Pillen erscheinen bis dahin unstilisiert). */
+  .fb-zeile { cursor: pointer; }
+  /* Nachtrag 2026-08-27 Punkt 5: Entscheid-Zelle traegt einen freien Vermerktext (bis 500
+     Zeichen) -- die generische `.tabelle-koerper td { white-space: nowrap }` liess ihn ueber die
+     Spalte hinweg in "Details" hineinlaufen (live an 1000px-Tabelle verifiziert). `.zwei-zeilen`
+     (bestehend, siehe .fehlerbild-zelle) begrenzt den Vermerk auf 2 Zeilen. */
+  td.fb-entscheid-zelle { white-space: normal; overflow-wrap: anywhere; }
+  .fb-drilldown { padding: 14px 16px; }
+  .fb-drilldown h4 {
+    margin: 0 0 8px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  .fb-drilldown h4:not(:first-child) { margin-top: 18px; }
+  .fb-sitzungen-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.84rem; }
+  .fb-ergebnis-tabelle { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 0.82rem; }
+  .fb-ergebnis-tabelle th, .fb-ergebnis-tabelle td { padding: 4px 8px; border-bottom: 1px solid var(--rand); text-align: left; }
+  .fb-drilldown-zeile td { background: var(--flaeche-alt); white-space: normal; }
+  .fb-pruefen-status { margin: 8px 0 0; }
+
+  /* ---- Phase 2 E ---- */
+  /* Status-Pille (C2/C7): feste Breite fuer alle 8 Werte, damit die Kopfzeile nicht je nach
+     Textlaenge springt -- erledigt/obsolet umrandet statt gefuellt (Contract-Vorgabe). */
+  .pille {
+    display: inline-flex; align-items: center; justify-content: center; width: 96px; flex: none;
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    border-radius: 20px; padding: 3px 6px; white-space: nowrap;
+  }
+  .pille[data-status="offen"] { background: var(--flaeche-alt); color: var(--text-muted); border: 1px solid var(--rand-stark); }
+  .pille[data-status="in_pruefung"] { background: var(--flaeche-alt); color: var(--primaer); border: 1px solid var(--mittelblau); }
+  .pille[data-status="bestaetigt"] { background: var(--erfolg-bg); color: var(--erfolg); border: 1px solid transparent; }
+  .pille[data-status="verworfen"] { background: var(--flaeche-alt); color: var(--text-muted); border: 1px solid var(--rand-stark); }
+  .pille[data-status="dissens"] { background: var(--kritisch-bg); color: var(--kritisch); border: 1px solid var(--kritisch); }
+  .pille[data-status="rueckfall"] { background: var(--fehler-bg); color: var(--fehler); border: 1px solid var(--fehler); }
+  .pille[data-status="erledigt"] { background: transparent; color: var(--erfolg); border: 1px solid var(--erfolg); }
+  .pille[data-status="obsolet"] { background: transparent; color: var(--text-muted); border: 1px solid var(--rand-stark); }
+  /* Tiefenanalyse-Konsens (Phase 3 I, C10) -- eigene Werte, dieselbe .pille-Groesse/-Optik.
+     "uebereinstimmend" wie bestaetigt (gruen), "ohne_zweitmeinung" neutral wie verworfen. */
+  .pille[data-status="uebereinstimmend"] { background: var(--erfolg-bg); color: var(--erfolg); border: 1px solid transparent; }
+  .pille[data-status="ohne_zweitmeinung"] { background: var(--flaeche-alt); color: var(--text-muted); border: 1px solid var(--rand-stark); }
+  /* Pille + Pruefen-Knopf ruecken als Paar an den rechten Rand des Kartenkopfs (.gk hat schon
+     flex-wrap; .kurz traegt sein eigenes margin-left:auto -- steht sie nicht im DOM, uebernimmt
+     dieses Element denselben Job). */
+  .gr .gk .gk-rechts { display: flex; align-items: center; gap: 8px; flex: none; margin-left: auto; }
+
+  /* Vier-Augen inline (ersetzt die alte volle Tabelle als primaere Ansicht, C7 "Befund-Karte") */
+  .va-inline {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 4px 14px 8px 14px;
+    font-size: 0.8rem; background: rgba(255, 255, 255, 0.5); border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .va-inline .urteil-inline { display: flex; align-items: center; gap: 4px; }
+  .va-inline .mark { font-weight: 700; }
+  .va-inline .mark.ok { color: var(--erfolg); }
+  .va-inline .mark.nein { color: var(--fehler); }
+  .va-inline .pfeil { color: var(--text-muted); }
+  .va-inline .ergebnis { font-weight: 700; }
+  .va-inline .ergebnis.dissens { color: var(--kritisch); }
+  .va-inline .ergebnis.bestaetigt { color: var(--erfolg); }
+  .va-inline .ergebnis.verworfen { color: var(--text-muted); }
+  .va-inline .signatur-label { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+  .va-inline .kennzeichen {
+    font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); background: var(--flaeche); border: 1px solid var(--rand-stark);
+    border-radius: 4px; padding: 1px 7px;
+  }
+  .va-inline .kennzeichen-eskaliert { color: var(--fehler); background: var(--fehler-bg); border-color: var(--fehler); }
+  .va-inline .aktion-rechts { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  /* Entscheiden-Formular aus dem Karten-Knopf: Slot bricht aus der Flex-Zeile aus und nimmt die
+     volle Kartenbreite (Gegenstueck zur Grid-Regel .gr .tr .erledigt-formular-slot, Befund 2026-08-29). */
+  .va-inline { flex-wrap: wrap; }
+  .va-inline .aktion-rechts:has(.erledigt-formular-slot:not(:empty)) { flex-basis: 100%; flex-wrap: wrap; }
+  .va-inline .aktion-rechts .erledigt-formular-slot:not(:empty) { flex-basis: 100%; }
+
+  /* Rohdatei-Link je Treffer (Phase 3 H, C5 GET /api/rohdatei) -- oeffnet rohdatei.js-Panel. */
+  .gr .tr .befund-pos { display: flex; align-items: center; gap: 8px; }
+  .rohdatei-link[disabled] { color: var(--text-muted); cursor: not-allowed; text-decoration: none; opacity: 0.7; }
+
+  /* Rohdatei-Panel (Phase 3 H, Mockup M3): eigenes <li> direkt unter der Befund-Karte (`.g`),
+     die die Rohdatei-Zeile ausgeloest hat -- optisch dockt es an, `margin-top: -1px` verschmilzt
+     die Kanten (gleiche Technik wie `.g` untereinander in der Liste). */
+  .rohdatei-panel-item {
+    list-style: none; border: 1px solid var(--rand); border-top: none; border-radius: 0 0 8px 8px;
+    background: var(--flaeche); padding: 14px 16px; margin: -1px 0 10px;
+  }
+  .rohdatei-panel-item .warnbanner {
+    display: flex; gap: 8px; align-items: flex-start; background: var(--warnung-bg);
+    border: 1px solid var(--warnung); border-radius: 6px; padding: 8px 12px; font-size: 0.8rem;
+    color: var(--text-body); margin: 0 0 10px;
+  }
+  .rohdatei-panel-item .warnbanner-gesperrt { background: var(--fehler-bg); border-color: var(--fehler); }
+  .rohdatei-panel-item .rohdatei-pfad { color: var(--text-muted); font-size: 0.76rem; margin: 0 0 10px; word-break: break-all; }
+  .rohdatei-zeilen {
+    background: var(--flaeche-alt); border: 1px solid var(--rand); border-radius: 6px;
+    padding: 8px 10px; overflow-x: auto; margin: 0 0 12px;
+  }
+  .rohdatei-zeile {
+    display: flex; align-items: baseline; gap: 10px; padding: 2px 0; font-size: 0.78rem;
+    white-space: nowrap;
+  }
+  .rohdatei-zeile .rohdatei-index { color: var(--text-muted); flex: 0 0 auto; }
+  .rohdatei-zeile .rohdatei-typ {
+    flex: 0 0 auto; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); background: var(--flaeche); border: 1px solid var(--rand-stark);
+    border-radius: 4px; padding: 1px 6px;
+  }
+  .rohdatei-zeile .rohdatei-text { color: var(--text-body); white-space: pre-wrap; }
+  .rohdatei-aktionen { display: flex; gap: 8px; }
+
+  /* Tiefenanalyse-Panel (Phase 3 I, C10, Mockup B1/B2) -- gleiches Andock-Muster wie
+     .rohdatei-panel-item (eigenes <li> direkt unter der Befund-Karte, verschmolzene Kante). */
+  .ta-panel-item {
+    list-style: none; border: 1px solid var(--rand); border-top: none; border-radius: 0 0 8px 8px;
+    background: var(--flaeche); padding: 16px 18px; margin: -1px 0 10px;
+  }
+  .ta-kopf { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin: 0 0 14px; }
+  .ta-kopf h3 { margin: 0; font-size: 1rem; }
+  .ta-klartext, .ta-spalte {
+    border: 1px solid var(--rand); border-radius: 6px; background: var(--flaeche); padding: 0 16px;
+    margin: 0 0 16px;
+  }
+  .ta-block { padding: 12px 0; border-top: 1px solid var(--rand); }
+  .ta-block:first-of-type { border-top: none; }
+  .ta-label {
+    display: block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.05em; color: var(--text-muted); margin: 0 0 4px;
+  }
+  .ta-wert { font-size: 0.86rem; color: var(--text-body); }
+  .ta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 0 0 16px; }
+  .ta-spalte { margin: 0; padding: 14px 16px; }
+  .ta-spalte .ta-block { padding: 12px 0; }
+  .ta-spalte-kopf { margin: 0 0 10px; }
+  .ta-entscheid { border-top: 1px solid var(--rand); padding-top: 14px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 0 0 16px; }
+  .entscheid-radios { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.84rem; }
+  .entscheid-radios label { display: flex; align-items: center; gap: 6px; }
+  .entscheid-vermerk {
+    flex: 1 1 220px; min-width: 180px; border: 1px solid var(--rand-stark); border-radius: 5px;
+    padding: 7px 10px; font-family: var(--font-ui); font-size: 0.82rem; background: var(--flaeche); color: var(--text-body);
+  }
+  .ta-commits h4 {
+    margin: 0 0 8px; font-size: 0.74rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .ta-commits-liste { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; }
+  /* Diff-Vorher/Nachher (Wunsch): bestehende Fehler-/Erfolg-Tokens, KEINE neuen Farben. */
+  .ta-commit-diff {
+    background: var(--flaeche-alt); border: 1px solid var(--rand); border-radius: 6px;
+    padding: 8px 10px; margin-top: 8px; overflow-x: auto; max-height: 320px; overflow-y: auto;
+    font-family: var(--font-mono); font-size: 0.76rem; white-space: pre;
+  }
+  .diff-zeile.diff-minus { background: var(--fehler-bg); color: var(--fehler); }
+  .diff-zeile.diff-plus { background: var(--erfolg-bg); color: var(--erfolg); }
+
+  /* "Alle offenen pruefen" ueber der Befund-Liste (Mockup M2 Kompaktzeile). */
+  #alle-offen-pruefen-hinweis { color: var(--fehler); margin: 0 0 8px; }
+  #alle-offen-pruefen-hinweis:empty { display: none; }
+
+  /* Pruefprotokoll (ehem. eigenstaendiger "Vier Augen"-Abschnitt) jetzt eingeklappt (Mockup M2). */
+  #vieraugen-abschnitt summary { cursor: pointer; font-size: 0.86rem; color: var(--text-muted); list-style: none; }
+  #vieraugen-abschnitt summary::-webkit-details-marker { display: none; }
+  #vieraugen-abschnitt summary::before { content: "▸ "; }
+  #vieraugen-abschnitt[open] summary::before { content: "▾ "; }
+
+/* ---- Phase 2 F ---- */
+/* Feedback 2026-08-27: Anbieter-Knopfleiste und Modellwahl je eigene volle Zeile (vorher
+   eine gemeinsame Flex-Zeile, .chat-anbieter-zeile oben enthielt beides). .chat-anbieter-zeile
+   ist jetzt NUR die Knopfleiste -- chat.js rendert sie aus einer Datenliste (ANBIETER), nicht aus
+   zwei fest verdrahteten Knoepfen, damit ein weiterer Anbieter (z. B. OpenRouter) als weiterer
+   Knopf in dieselbe Zeile passt. .chat-modell-select ist ein eigenstaendiges Geschwisterelement
+   in .chat-kopf (Flex-Spalte, align-items:stretch) -- dadurch automatisch volle Breite, eigene
+   Zeile, ohne zusaetzlichen Wrapper. Bewusst NICHT ueber die globale .segmented-Klasse (Zeitraum-
+   Umschalter, style.css oben) gestylt -- eigener, kompakterer Knopf-Look mit sichtbarem Abstand
+   statt zusammenhaengendem Segmented-Control. */
+  /* Nachtrag Phase 2 OpenRouter (Auftrag): Anbieter-Knoepfe exakt gleich breit -- vorher
+     flex:0 0 auto liess sie je nach Textlaenge unterschiedlich breit werden. display:grid mit
+     fixer Spaltenzahl gibt allen dieselbe Spaltenbreite (gemessen per Playwright
+     getBoundingClientRect(), nicht geraten); die ID gewinnt gegen die .chat-anbieter-zeile-Klasse
+     oben (display:flex) allein durch hoehere Selektor-Spezifitaet.
+     Nachtrag Layout-Nachlese (2026-08-28, Auftrag Punkt 1): zurueck auf EINE Zeile mit 4
+     gleich breiten Spalten (der Zwischenstand 2x2 aus der Requesty-Einfuehrung ist damit
+     ueberholt) -- kleinere Schrift/Innenabstand statt Ellipsis, damit "OpenRouter" bei 440px
+     Chat-Breite (#chat --chat-breite) ohne Abschneiden hineinpasst; per Playwright bei 1850px
+     UND 1366px verifiziert (skalierung.js zoomt beide Breiten aus demselben 1880px-Raster,
+     Layout-Verhaeltnis bleibt gleich). */
+  #chat-anbieter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; width: 100%; }
+  #chat-anbieter button {
+    padding: 4px 2px; font-size: 0.66rem; font-family: var(--font-ui); text-align: center;
+    border: 1px solid var(--rand-stark); border-radius: 5px; background: var(--flaeche);
+    color: var(--text-body); cursor: pointer; white-space: nowrap;
+  }
+  #chat-anbieter button[aria-pressed="true"] {
+    background: var(--primaer); color: var(--primaer-kontrast); border-color: var(--primaer); font-weight: 600;
+  }
+  /* Aktiv-Zustand in Anbieterfarbe (Nachtrag Phase 2 OpenRouter/Requesty): Claude/OpenRouter/
+     Requesty sind Cloud-Anbieter mit eigener Marke, Ollama bleibt bei der neutralen Primaerfarbe
+     von oben ("wie bisher", Auftrag). */
+  #chat-anbieter button[data-anbieter="claude"][aria-pressed="true"] {
+    background: var(--quelle-claude); border-color: var(--quelle-claude); color: #fff;
+  }
+  #chat-anbieter button[data-anbieter="openrouter"][aria-pressed="true"] {
+    background: var(--quelle-openrouter); border-color: var(--quelle-openrouter); color: #fff;
+  }
+  #chat-anbieter button[data-anbieter="requesty"][aria-pressed="true"] {
+    background: var(--quelle-requesty); border-color: var(--quelle-requesty); color: #fff;
+  }
+  .chat-modell-select { width: 100%; }
+  /* OpenRouter-Datenschutzhinweis (Nachtrag Phase 2, Auftrag Punkt 6): nur sichtbar, wenn
+     OpenRouter gewaehlt ist (chat.js aktualisiereOpenrouterHinweis()); Anbieterfarbe statt
+     Warnfarbe -- kein Fehlerzustand, nur ein Merksatz. */
+  .chat-hinweis-openrouter { margin: 0; color: var(--quelle-openrouter); }
+  /* Requesty-Datenschutzhinweis (Nachtrag 2026-08-28): analog OpenRouter, plus Schalter fuer den
+     Default-Filter (nur sichtbar wenn Requesty gewaehlt, chat.js aktualisiereRequestyHinweis()). */
+  .chat-hinweis-requesty { margin: 0; color: var(--quelle-requesty); }
+  .chat-hinweis-requesty label { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; cursor: pointer; }
+  .chat-hinweis-requesty input[type="checkbox"] { accent-color: var(--quelle-requesty); width: 13px; height: 13px; }
+
+  /* ---------- C15 Modellkatalog (Paket L, Einstellungen -> Modellkatalog) ----------
+     Bauvorlage: _work/sitzungsbeleg-modellkatalog-mockup.html (Runde 11). Klassen
+     wiederverwendet statt dupliziert: .tabelle-gitter/-kopf/-koerper, .th-sort/.sort-arrow,
+     .quelle-chip, .caption, .hilfe-text, .projekt-suche (schon aus Sitzungstabelle/Sitzung-
+     Filterleiste/Einstellungen bekannt) -- hier nur das, was es noch nicht gibt: Persona-
+     Kacheln, Flaggen-/AA-Balken-Zellen, LOKAL-Piktogramm, Filter-Seitenleiste (.chip-reihe;
+     die Anbieter-Checkboxen laufen ueber die .quellen-liste der Startseite). */
+  .chip-reihe { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* Persona-Kachelzeile */
+  .persona-kacheln { display: flex; gap: 14px; flex-wrap: wrap; }
+  .persona-karte {
+    flex: 1 1 220px; min-width: 220px; border: 1px solid var(--rand); border-top: 3px solid var(--rand-stark);
+    border-radius: 6px; background: var(--flaeche); overflow: hidden; display: flex; flex-direction: column;
+  }
+  .persona-kopf { padding: 9px 12px; border-bottom: 1px solid var(--rand); background: var(--flaeche-alt); display: flex; align-items: center; gap: 9px; }
+  .persona-kopf--marke { gap: 10px; }
+  .persona-kopf-titel { font-weight: 700; color: var(--text); font-size: 0.86rem; }
+  .persona-kopf-titel--vico { color: var(--pf-vico); }
+  .persona-kopf-titel--vica { color: var(--pf-vica); }
+  .persona-kopf-titel--cura { color: var(--pf-cura); }
+  .persona-kopf-rolle { font-size: 0.86rem; font-weight: 400; color: var(--text-body); white-space: nowrap; }
+  /* Groessenmodifikator fuer den bestehenden Netz-Orb (.mini-orb, index.html #orb-mesh) -- die
+     Kartenkoepfe brauchen ihn deutlich groesser als die 14-16px der Filterliste/Sitzungstabelle. */
+  .mini-orb-44 { width: 44px; height: 44px; }
+  .persona-koerper { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; justify-content: space-between; }
+  .persona-weg { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; }
+  .persona-weg .quelle-chip { flex: none; width: 82px; font-size: 0.72rem; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .persona-weg .modell { font-family: var(--font-mono); color: var(--text-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  /* Kein Pin-Symbol mehr (Abnahme 2026-08-30 Fix 2) -- der aktuelle Standard wird nur noch
+     ueber den Tint-Hintergrund von .persona-weg.primaer hervorgehoben. */
+  .persona-weg.primaer { background: var(--primaer-tint); border-radius: 4px; padding: 5px 7px; margin: 0 -7px; }
+  .erreichbar-punkt { width: 6px; height: 6px; border-radius: 50%; background: var(--erfolg); flex: none; display: inline-block; }
+  .persona-unterteil-titel { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 6px 0 -2px; }
+  .persona-unterteil-titel:first-child { margin-top: 0; }
+
+  /* LOKAL-Kachel: Haus-Piktogramm (stroke=currentColor wie die Orbs, neutraler Ton statt
+     Persona-Glow) + Bestandsliste mit Sterne-/Kommentarzeile. */
+  .persona-kopf--lokal { flex-direction: column; align-items: stretch; gap: 6px; }
+  .persona-kopf-zeile { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .lokal-titel-gruppe { display: flex; align-items: center; gap: 8px; }
+  .lokal-icon { fill: none; stroke: currentColor; stroke-width: 1.4; flex: none; display: block; width: 26px; height: 26px; color: var(--text-muted); }
+  .lokal-liste { list-style: none; margin: 0; padding: 0 4px 0 0; display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--rand-stark) transparent; }
+  .lokal-liste li { display: flex; flex-direction: column; gap: 1px; font-size: 0.76rem; }
+  .lokal-liste li.primaer { background: var(--primaer-tint); border-radius: 4px; padding: 5px 7px; margin: 0 -7px; }
+  .lokal-liste .modellname { font-family: var(--font-mono); display: flex; align-items: center; gap: 5px; overflow-wrap: anywhere; white-space: normal; }
+  .lokal-liste li.primaer .modellname { font-weight: 700; }
+  .lokal-liste .sterne { color: var(--warnung); font-size: 0.68rem; }
+
+  /* LOKAL-Karte: lange modelle.json-Kommentare einzeilig kappen (Sichtbefund 2026-08-28
+     Screenshot: Volltext sprengte die Karte; Mockup zeigt kompakte Zeilen). */
+  .lokal-liste .sterne { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* Katalog-Filter als linke Seitenleiste im Haus-Muster der Startseite (.filter-gruppe/.eyebrow,
+     Sichtabnahme 2026-08-28: Aufbau wie Mockup -- Filter > Eignung > Anbieter > Herkunft,
+     unten der Treffer-Zaehler). Eignung ist eine Menueliste, aktiver Eintrag hell hinterlegt. */
+  .eyebrow-zusatz { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--text-muted); }
+  #mk-seitenleiste .mk-suche { max-width: none; width: 100%; box-sizing: border-box; }
+  .mk-eignung { display: flex; flex-direction: column; align-items: stretch; gap: 2px; }
+  .mk-eignung button {
+    all: unset; box-sizing: border-box; cursor: pointer; padding: 6px 10px; border-radius: 5px;
+    font-size: 0.8rem; color: var(--text-body);
+  }
+  .mk-eignung button:hover { background: var(--flaeche-alt); }
+  .mk-eignung button[aria-pressed="true"] { background: var(--flaeche-alt); color: var(--text); font-weight: 600; }
+  .herkunft-chip {
+    display: inline-flex; align-items: center; justify-content: center; min-width: 34px; border-radius: 4px;
+    padding: 3px 8px; font-size: 0.72rem; font-weight: 700; font-family: var(--font-mono);
+    border: 1px solid var(--rand-stark); background: var(--flaeche-alt); color: var(--text-body); cursor: pointer;
+  }
+  /* Auswahl-Logik (Maintainer 2026-08-28): ohne Auswahl (Vollansicht) ist KEIN Chip gedimmt --
+     erst sobald mindestens ein Land gewaehlt ist, treten die uebrigen zurueck. */
+  .mk-herkunft.auswahl-aktiv .herkunft-chip[aria-pressed="false"] { opacity: 0.4; }
+  .mk-herkunft.auswahl-aktiv .herkunft-chip[aria-pressed="true"] { border-color: var(--primaer); }
+
+  /* Katalogtabelle: eigene Zellbausteine, die es in der Sitzungstabelle so nicht gibt. */
+  /* 60vh nur als Fallback bis JS misst -- katalog.js:passeKatalogHoeheAn() setzt die Hoehe
+     auf ganze Zeilen bis zur Fensterunterkante (Maintainer 2026-08-28: Tabelle endete mitten in einer
+     Zeile und lief unter den Viewport, Start-Seite als Vorbild). Feste 46px-Zeilenhoehe macht
+     die Ganzzeilen-Rechnung erst moeglich (vorher 59-72px je nach Chip-Umbruch). */
+  .mk-koerper { max-height: 60vh; }
+  /* Preistabelle (Einstellungen, Befund/-Nachtrag 2026-08-30): Katalog-Look -- feste
+     46px-Zeilen wie die Katalog-Tabelle, Deckel = GANZE 10 Zeilen (461px = 10*46 + 1px
+     Rahmen), vorgegebene Laenge statt Strecken bis an die Unterkante. Scrollt INNEN mit
+     sichtbarem Balken (.tabelle-koerper-Basis), sprengt die feste Mittelspalte
+     (.detail-mitte) nicht. */
+  .pt-koerper { max-height: 461px; }
+  .pt-koerper td { height: 46px; padding: 3px 12px; }
+  .verwendet-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .verwendet-chip { border: 1px solid var(--rand-stark); border-radius: 999px; padding: 1px 7px;
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.02em; color: var(--text-muted);
+    white-space: nowrap; }
+  /* Persona-Chips in ihrer Orb-Farbe (Maintainer 2026-08-30): Toene wortgleich aus
+     .mini-orb--vico/vica/cura, Hintergrund 7% wie die bestehenden Persona-Akzent-Regeln. */
+  .verwendet-chip.persona-vico { color: #2f8fd8; border-color: #2f8fd8; background: rgba(47, 143, 216, 0.07); }
+  .verwendet-chip.persona-vica { color: #b07fe0; border-color: #b07fe0; background: rgba(176, 127, 224, 0.07); }
+  .verwendet-chip.persona-cura { color: #4fd09a; border-color: #4fd09a; background: rgba(79, 208, 154, 0.07); }
+  .mk-koerper td { height: 46px; padding: 3px 12px; }
+  /* Kompakte Zeilen (Maintainer 2026-08-28): Modellname kleiner, Chips enger -- Zeile traegt jetzt
+     Name+Herstellerzeile UND bis zu 2 Chip-Reihen in 46px. */
+  .mk-koerper .modell-zelle .name { font-size: 0.8rem; }
+  .mk-koerper .modell-zelle .hersteller { font-size: 0.68rem; }
+  .mk-koerper .wege-zellen { gap: 3px; }
+  .mk-koerper .wege-zellen .quelle-chip { font-size: 0.68rem; padding: 1px 4px; width: 78px; line-height: 1.2; }
+  .modell-zelle, .stand-zelle { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  /* Modell-Zelle zweizeilig (Maintainer 2026-08-30, Status-Zone unten -- revidiert die Regel vom
+     selben Tag): Zeile 1 = Name ueber die VOLLE Breite (keine rechte Nebenspur -- Sterne oben
+     kollidierten mit langem Namen); Zeile 2 = Hersteller links + EINE Status-Zone rechts
+     (Legacy-Chip ODER Sterne ODER Latest-Chip). Grid 2 Spalten: Inhaltsspur + auto-Spur, die
+     sich nach der Status-Zone dimensioniert. */
+  .modell-zelle.mz2 { display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto; gap: 1px 8px; align-items: center; }
+  /* Abschneiden gehoert auf den BLOCK-Container, nicht auf die Inline-Spanne (Live-Befund
+     Maintainer 2026-08-30: overflow auf .name clippt nichts, der lange Name lief in die Flaggen-
+     Spalte). Ellipsis-Rezept gehoert komplett hierher; .name traegt nur noch Schrift. */
+  .modell-zelle.mz2 .mz-top { grid-column: 1 / -1; min-width: 0; overflow: hidden;
+    white-space: nowrap; text-overflow: ellipsis; }
+  .modell-zelle.mz2 .mz-chip { justify-self: end; }
+  /* KEIN display:none bei leeren Zonen (Live-Messung 2026-08-30): display:none nimmt das
+     Element aus dem Grid -- die nachfolgenden Zonen rutschen hoch (Hersteller landete auf
+     Zeile 1). Leere Zonen muessen als unsichtbare Platzhalter stehen bleiben. */
+  .modell-zelle.mz2 .mz-chip:empty { visibility: hidden; }
+  .modell-zelle .name { font-weight: 700; color: var(--text); }
+  .modell-zelle .hersteller { font-size: 0.72rem; color: var(--text-muted); }
+  /* Automatische Katalog-Sterne v3 (Abnahme 2026-08-30): IMMER 5 kleine Sterne statt Zahl+★
+     (.mk-stern, SVG-Icons unten) -- diese Basisklasse traegt nur noch Position/Abstand + die
+     feste Breite, die Sterne/Legacy-Chip/Latest-Chip auf gleiche Zellenbreite bringt (58px reichen
+     fuer "Legacy"/"Latest" bei 0.68rem/600 UND fuer 5x10px-Sterne + 1px Gap). Aufschluesselung
+     Score/AA/Coding/Bild bleibt im Tooltip (title), Zahl im aria-label (sterneTooltipText/
+     gesamtSterneText in katalog.js). */
+  .mk-sterne {
+    display: inline-flex; align-items: center; justify-content: center; gap: 1px;
+    width: 58px; box-sizing: border-box; margin-left: 6px; vertical-align: middle; cursor: help;
+  }
+  /* Einzelner Stern: SVG-Icon (katalog.js fuenfSterneHtml), 10x10px passt in die bestehende kleine
+     Sterne-Groesse. Voll/leer je einfarbig gefuellt; der halbe Stern nutzt eine SVG-linearGradient
+     (50% Sternfarbe/50% gedaempft) statt CSS `overflow:hidden` auf Text -- vermeidet die haerteren
+     design_waechter-Regeln "clipped-overflow-container"/"text-overflow" (design_waechter/
+     regeln.json). Farben ausschliesslich hier (gleiche Klasse traegt `fill` fuer <path> UND
+     `stop-color` fuer <stop> im halben Stern) -- kein Inline-Farbwert im JS-Markup. */
+  .mk-stern { width: 10px; height: 10px; flex: 0 0 auto; }
+  .mk-stern-voll { fill: var(--warnung); stop-color: var(--warnung); }
+  /* Zusatz 2026-08-30: --text-muted war als Fuellung zu dunkel -- Halbsterne waren nicht als
+     "halb" erkennbar. Gleiches Ton-Paar wie die AA-Balkenspur (.aa-bar oben: helle Flaeche +
+     duenne Kontur in der naechsttieferen Randfarbe) statt Text-Grau -- --flaeche-alt bleibt auf
+     der Kartenflaeche (--flaeche) sichtbar hell, --rand-stark zieht die Sternform als duenne
+     Kontur nach, egal wie hell die Fuellung ist. Gilt sowohl fuer den leeren Stern (volle Flaeche)
+     als auch die rechte Haelfte des Halbsterns (stop-color hier, Kontur ueber .mk-stern-halb). */
+  .mk-stern-leer { fill: var(--flaeche-alt); stop-color: var(--flaeche-alt); stroke: var(--rand-stark); stroke-width: 1px; }
+  .mk-stern-halb { stroke: var(--rand-stark); stroke-width: 1px; }
+  /* Legacy-Chip (Entscheid 2026-08-30 C): ersetzt die Sterne bei `nachfolger`-Modellen --
+     neutrale Graupalette wie .status-pille.st-neutral, chip_badge-Radius (DESIGN.md 4-5px),
+     kompakt genug fuers Namensfeld. */
+  .mk-legacy-chip {
+    padding: 1px 6px; border-radius: 4px;
+    background: var(--flaeche-alt); color: var(--text-muted); font-size: 0.68rem; font-weight: 600;
+  }
+  /* Latest-Chip (Abnahme 2026-08-30, Kontrast-Nachbesserung): voller Hausfarbton statt
+     dezentem Tint -- der helle `--primaer-tint`-Chip verschwamm neben dem grauen Legacy-Chip
+     (Feedback). Weisse Schrift auf `--primaer` (#004F7C) rechnet auf ~8,7:1 Kontrast (WCAG
+     AA/AAA), `--primaer` bleibt in beiden Themes unveraendert dunkelblau (kein Redefinieren im
+     Dark-Block noetig). NICHT Gruen (das bleibt dem Primaerknopf vorbehalten). */
+  .mk-latest-chip {
+    padding: 1px 6px; border-radius: 4px;
+    background: var(--primaer); color: var(--primaer-kontrast); font-size: 0.68rem; font-weight: 600;
+  }
+  /* HF-Quelle-Kennzeichen (Entscheid 2026-08-30 D): kleines Symbol hinter hf.co-Modellnamen,
+     zeigt "lokal gespeichert" im Tooltip statt einer eigenen Spalte. */
+  .hf-quelle { font-size: 0.78rem; cursor: help; }
+  /* Stand groesser (Maintainer 2026-08-28: "koennen wir den Stand etwas groesser machen") -- Spalte
+     dafuer 120px breit, Coding-Spalte im Gegenzug auf 95px ("Coding"-Label statt "Coding-Index",
+     sonst kollidiert der Kopf wie am 2026-08-28 gemessen). */
+  .stand-zelle .stand-datum { font-family: var(--font-mono); font-size: 0.86rem; color: var(--text-body); }
+  td.herkunft-zelle { text-align: center; }
+  .flagge-svg { border: 1px solid var(--rand); border-radius: 2px; vertical-align: middle; }
+  /* Tabelle behaelt die groessere Flagge (Mockup-Mass); Panels (Persona-Karten, s.
+     .persona-weg .flagge-svg) nutzen die kleinere Default-Groesse aus format.js:herkunftFlaggeHtml
+     -- gleiches Markup (Entscheid 2026-08-30 D), nur die Groesse unterscheidet sich per CSS. */
+  .herkunft-zelle .flagge-svg { width: 35px; height: 23px; }
+  .herkunft-fallback { font-size: 0.72rem; color: var(--text-muted); }
+  .wege-zellen { display: flex; flex-wrap: wrap; gap: 4px; }
+  /* C15 v2 Live-Feedback (2026-08-28): die Backend-Konsolidierung liefert jetzt bis zu 4
+     Bezugswege je Modell -- bei 82px Chipbreite passten 2 Chips + 4px Gap (168px) NICHT mehr in
+     den verfuegbaren Zellinnenraum der 190px-Anbieter-Spalte (190px - 2*12px Zellpadding =
+     165,9px gemessen), darum wrappte JEDER Chip einzeln in eine eigene Zeile statt 2x2. 80px
+     Chipbreite (2*80+4=164px) passt wieder mit Luft -- Spaltenbreite/colgroup bleibt unangetastet
+     (abgenommen). */
+  .wege-zellen .quelle-chip { flex: none; width: 80px; min-width: 0; padding: 2px 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .aa-zelle { display: flex; align-items: center; gap: 6px; }
+  .aa-zahl { font-family: var(--font-mono); font-weight: 700; color: var(--text); width: 22px; text-align: right; }
+  .aa-bar { width: 52px; height: 6px; border-radius: 3px; background: var(--flaeche-alt); border: 1px solid var(--rand-stark); overflow: hidden; flex: none; }
+  .aa-bar > span { display: block; height: 100%; background: var(--mittelblau); }
+  .preis-guenstig { font-weight: 700; color: var(--text); }
+  /* Standardmodell-Markierung (📌 + Tooltip, katalog.js:standardHinweiseJeModell) -- gleiche
+     Tint-Idee wie .persona-weg.primaer, hier auf Zeilenebene. */
+  .tabelle-koerper tr.zeile-standard td { background: var(--primaer-tint); }
+  .tabelle-koerper tr.zeile-standard td:first-child { position: relative; padding-left: 20px; }
+  .tabelle-koerper tr.zeile-standard td:first-child::before { content: "📌"; position: absolute; left: 2px; top: 50%; transform: translateY(-50%); font-size: 0.72rem; }
+
+  /* ---------- C15 v2 Vollausbau (Nachtrag, Mockup Runde 12) ----------
+     Einstellungen-Untermenue (.einst-nav) im Startseiten-Look: Hauptpunkte GROSSBUCHSTABEN +
+     fett, duenne Trennlinien zwischen den Punkten, aktiver Punkt Primaerfarbe + linke
+     Markierungsleiste. Der Filterblock (.filter-block) haengt als eingeruecktes Untermenue
+     direkt am aktiven Hauptpunkt "Modellkatalog" -- wortgleich aus dem Mockup uebernommen,
+     Variablennamen sind identisch mit dieser Datei.
+     Live-Feedback (2026-08-28, Zwischenstand): ALLE Selektoren mit ">" auf DIREKTE Kinder von
+     .einst-nav skopiert -- ".einst-nav li + li" (ohne ">") traf jedes <li> IRGENDWO im
+     Nachfahren-Baum, also auch die filter-zeile-<li>s der Anbieter-Checkboxliste (.quellen-liste
+     liegt verschachtelt im Filterblock desselben <li>) und zog dort ungewollte Trennlinien ein.
+     Filterblock ist jetzt per Default zu (nur der AKTIVE Hauptpunkt zeigt seinen Filterblock --
+     hier "Modellkatalog"; die drei anderen Punkte haben ohnehin keinen). */
+  .einst-nav { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; }
+  .einst-nav > li + li { border-top: 1px solid var(--rand); margin-top: 8px; padding-top: 8px; }
+  .einst-nav > li > a {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px;
+    border-radius: 5px; text-decoration: none; border-left: 3px solid transparent;
+    text-transform: uppercase; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.03em; color: var(--text-body);
+    cursor: pointer;
+  }
+  .einst-nav > li > a:hover { background: var(--flaeche-alt); }
+  .einst-nav > li.aktiv > a { background: var(--flaeche-alt); color: var(--primaer); border-left-color: var(--primaer); }
+  .filter-block { display: none; margin: 8px 0 0 13px; padding: 10px 0 2px 11px; border-left: 1px solid var(--rand); }
+  .einst-nav > li.aktiv > .filter-block { display: block; }
+
+  /* Katalog-Kopfzeile: Ueberschrift + Zaehler links, Aktualisieren-Knopf rechts (C15 v2 Punkt 4). */
+  .kat-kopf-zeile { display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+  .kat-kopf-zeile .kat-titel { margin-right: auto; min-width: 0; }

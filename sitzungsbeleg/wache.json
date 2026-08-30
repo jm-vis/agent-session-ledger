@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "standard": "warnen",
+  "regeln": {
+    "rework:tool": "fragen"
+  },
+  "mindest_werkzeugaufrufe": 10,
+  "mindest_sekunden": 60
+}
