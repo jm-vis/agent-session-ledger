@@ -4,6 +4,9 @@
 
 [![tests](https://github.com/jm-vis/agent-session-ledger/actions/workflows/tests.yml/badge.svg)](https://github.com/jm-vis/agent-session-ledger/actions/workflows/tests.yml)
 
+Built and maintained by [VISCONSULT](https://vis-consult.eu), a consultancy in Germany that
+runs AI agents for its own work and for clients under EU data-protection rules.
+
 The flight recorder for AI agents: every Claude Code and Codex session becomes a ledger
 record with numbers and rule IDs, never content. MIT licensed, Python, 1,000+ tests.
 
@@ -199,6 +202,17 @@ Fewer features means a smaller surface to audit, which was the point of the exer
 The user interface and the code comments are German (this project grew out of a German
 workflow); the interface contracts (`CONTRACTS.md`) and this README are English so the
 project is reviewable regardless of which language you read code comments in.
+
+## About
+
+Agent Session Ledger comes out of the daily work at [VISCONSULT](https://vis-consult.eu), a
+consultancy in Germany. We run Claude Code and Codex for our own operations and for client
+projects, and we need every session to be auditable without storing what was said. This tool
+is that audit trail. We publish it because the problem is not specific to us.
+
+If you want a second pair of eyes on your own agent setup, from session evidence to EU
+data-protection boundaries, contact us through the website. Issues and pull requests are
+welcome here.
 
 ## License
 
